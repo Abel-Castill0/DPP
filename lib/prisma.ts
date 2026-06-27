@@ -3,7 +3,10 @@ import { PrismaPg } from "@prisma/adapter-pg"
 
 function createPrismaClient(): PrismaClient {
   const url = process.env.DATABASE_URL!
-  const adapter = new PrismaPg({ connectionString: url })
+  // Supabase requires SSL for external connections; rejectUnauthorized=false
+  // avoids cert pinning issues in Vercel's serverless environment.
+  const ssl = url.includes("supabase") ? { rejectUnauthorized: false } : undefined
+  const adapter = new PrismaPg({ connectionString: url, ssl })
   return new PrismaClient({ adapter })
 }
 
