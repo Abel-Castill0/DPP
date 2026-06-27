@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { DemoBadge } from "@/components/status-badge"
 import type { PurchaseOrderRow } from "@/lib/data/purchase-orders"
+import { generateFromPurchaseOrder } from "@/app/actions/orders-to-cash"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ShoppingCart, Plus, Search, AlertTriangle } from "lucide-react"
+import { ShoppingCart, Plus, Search, AlertTriangle, SendHorizontal, CheckCircle2, Clock } from "lucide-react"
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 }).format(n)
@@ -32,6 +34,37 @@ const paymentConfig: Record<string, { label: string; className: string }> = {
   VENCIDO:   { label: "Vencido",   className: "bg-red-50 text-red-700 border border-red-200" },
 }
 
+const cajaStatusConfig: Record<string, { label: string; icon: React.ReactNode }> = {
+  POR_PAGAR: { label: "En caja / Pendiente", icon: <Clock className="w-3 h-3 text-amber-500" /> },
+  COBRADO:   { label: "Pagado",              icon: <CheckCircle2 className="w-3 h-3 text-emerald-600" /> },
+  ADELANTO:  { label: "Con adelanto",        icon: <Clock className="w-3 h-3 text-blue-500" /> },
+  CANCELADO: { label: "Cancelado",           icon: <CheckCircle2 className="w-3 h-3 text-gray-400" /> },
+}
+
+function CajaCell({ row, isDemo, onSend }: { row: PurchaseOrderRow; isDemo: boolean; onSend: (id: string) => void }) {
+  if (isDemo) return <span className="text-muted-foreground text-[10px]">—</span>
+
+  if (row.hasCashMovement && row.cashMovementStatus) {
+    const cfg = cajaStatusConfig[row.cashMovementStatus]
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-foreground">
+        {cfg?.icon}
+        {cfg?.label ?? row.cashMovementStatus}
+      </span>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => onSend(row.id)}
+      className="inline-flex items-center gap-1.5 h-6 px-2 text-[10px] font-medium rounded border border-primary/30 text-primary hover:bg-primary/5 transition-colors whitespace-nowrap"
+    >
+      <SendHorizontal className="w-3 h-3" />
+      Enviar a caja
+    </button>
+  )
+}
+
 export function PurchaseOrdersClientPage({
   orders,
   isDemo,
@@ -39,7 +72,11 @@ export function PurchaseOrdersClientPage({
   orders: PurchaseOrderRow[]
   isDemo: boolean
 }) {
+  const router = useRouter()
   const [search, setSearch] = useState("")
+  const [isPending, startTransition] = useTransition()
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingId, setPendingId] = useState<string | null>(null)
 
   const filtered = orders.filter((oc) => {
     if (!search) return true
@@ -56,6 +93,20 @@ export function PurchaseOrdersClientPage({
     .filter((oc) => oc.paymentStatus !== "PAGADO")
     .reduce((acc, oc) => acc + oc.pendingAmount, 0)
 
+  const handleSendToCash = (orderId: string) => {
+    setActionError(null)
+    setPendingId(orderId)
+    startTransition(async () => {
+      const result = await generateFromPurchaseOrder(orderId)
+      setPendingId(null)
+      if ("error" in result) {
+        setActionError(result.error)
+      } else {
+        router.refresh()
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col min-h-full">
       <Header title="Órdenes de Compra" subtitle="Compras de insumos y materiales" />
@@ -68,6 +119,21 @@ export function PurchaseOrdersClientPage({
               Datos de demostración. Conecta la base de datos para ver órdenes reales.
             </p>
             <DemoBadge />
+          </div>
+        )}
+
+        {actionError && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+            <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+            <p className="text-xs text-red-800">{actionError}</p>
+            <button onClick={() => setActionError(null)} className="ml-auto text-xs text-red-500 hover:text-red-700">✕</button>
+          </div>
+        )}
+
+        {isPending && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="w-3 h-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            <p className="text-xs text-blue-700">Generando movimiento de caja...</p>
           </div>
         )}
 
@@ -117,6 +183,7 @@ export function PurchaseOrdersClientPage({
                       <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Pendiente</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Estado</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Pago</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Caja</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Responsable</th>
                     </tr>
                   </thead>
@@ -124,8 +191,9 @@ export function PurchaseOrdersClientPage({
                     {filtered.map((oc) => {
                       const st = statusConfig[oc.status] ?? { label: oc.status, className: "bg-muted text-muted-foreground" }
                       const pt = paymentConfig[oc.paymentStatus] ?? { label: oc.paymentStatus, className: "bg-muted text-muted-foreground border border-border" }
+                      const isSending = isPending && pendingId === oc.id
                       return (
-                        <tr key={oc.id} className="hover:bg-muted/30 transition-colors">
+                        <tr key={oc.id} className={`hover:bg-muted/30 transition-colors ${isSending ? "opacity-60" : ""}`}>
                           <td className="px-4 py-3 font-mono font-medium text-primary">{oc.orderNumber}</td>
                           <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{fmtDate(oc.issueDate)}</td>
                           <td className="px-4 py-3 text-foreground max-w-[160px] truncate">{oc.supplier}</td>
@@ -139,6 +207,9 @@ export function PurchaseOrdersClientPage({
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${pt.className}`}>{pt.label}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <CajaCell row={oc} isDemo={isDemo} onSend={handleSendToCash} />
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{oc.responsible}</td>
                         </tr>

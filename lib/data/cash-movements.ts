@@ -7,6 +7,8 @@ export type CashMovementRow = {
   type: string
   origin: string
   orderNumber: string | null
+  purchaseOrderId: string | null
+  serviceOrderId: string | null
   operationStatus: string
   category: string
   description: string | null
@@ -31,6 +33,8 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
         description: true,
         abono: true,
         invoiceAmount: true,
+        purchaseOrderId: true,
+        serviceOrderId: true,
         supplier: { select: { name: true } },
         purchaseOrder: { select: { orderNumber: true } },
         serviceOrder: { select: { orderNumber: true } },
@@ -50,6 +54,8 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
         type: r.type,
         origin: r.origin,
         orderNumber: r.purchaseOrder?.orderNumber ?? r.serviceOrder?.orderNumber ?? null,
+        purchaseOrderId: r.purchaseOrderId,
+        serviceOrderId: r.serviceOrderId,
         operationStatus: r.operationStatus,
         category: r.category,
         description: r.description,
@@ -62,5 +68,9 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
       }
     })
     return withBalance.reverse()
-  }, demoCashMovements as unknown as CashMovementRow[])
+  }, (demoCashMovements as unknown[]).map((m) => ({
+    ...(m as CashMovementRow),
+    purchaseOrderId: null,
+    serviceOrderId: null,
+  })) as CashMovementRow[])
 }

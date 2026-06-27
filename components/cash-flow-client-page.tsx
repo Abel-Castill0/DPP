@@ -1,21 +1,65 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { FilterBar } from "@/components/filter-bar"
 import { TypeBadge, StatusBadge, DemoBadge } from "@/components/status-badge"
 import { EmptyState } from "@/components/empty-state"
 import type { CashMovementRow } from "@/lib/data/cash-movements"
+import { markMovementPaid, markMovementPending } from "@/app/actions/orders-to-cash"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Upload, Download, ArrowLeftRight, AlertTriangle } from "lucide-react"
+import { Plus, Upload, Download, ArrowLeftRight, AlertTriangle, CheckCircle2, RotateCcw } from "lucide-react"
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 }).format(n)
 
 const fmtDate = (s: string) =>
   new Date(s).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" })
+
+function PaidAction({
+  movement,
+  isDemo,
+  onPaid,
+  onPending,
+}: {
+  movement: CashMovementRow
+  isDemo: boolean
+  onPaid: (id: string) => void
+  onPending: (id: string) => void
+}) {
+  if (isDemo) return null
+
+  if (movement.operationStatus === "POR_PAGAR" && movement.type === "EGRESO") {
+    return (
+      <button
+        onClick={() => onPaid(movement.id)}
+        title="Marcar como pagado"
+        className="inline-flex items-center gap-1 h-6 px-2 text-[10px] font-medium rounded border border-emerald-300 text-emerald-700 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+      >
+        <CheckCircle2 className="w-3 h-3" />
+        Pagar
+      </button>
+    )
+  }
+
+  if (movement.operationStatus === "COBRADO" && (movement.purchaseOrderId ?? movement.serviceOrderId)) {
+    return (
+      <button
+        onClick={() => onPending(movement.id)}
+        title="Revertir a pendiente"
+        className="inline-flex items-center gap-1 h-6 px-2 text-[10px] font-medium rounded border border-border text-muted-foreground hover:bg-muted transition-colors whitespace-nowrap"
+      >
+        <RotateCcw className="w-3 h-3" />
+        Revertir
+      </button>
+    )
+  }
+
+  return null
+}
 
 export function CashFlowClientPage({
   movements,
@@ -24,9 +68,12 @@ export function CashFlowClientPage({
   movements: CashMovementRow[]
   isDemo: boolean
 }) {
+  const router = useRouter()
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [isPending, startTransition] = useTransition()
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const filtered = movements.filter((m) => {
     const matchSearch =
@@ -42,6 +89,27 @@ export function CashFlowClientPage({
 
   const totalIngresos = filtered.filter((m) => m.type === "INGRESO").reduce((a, m) => a + m.abono, 0)
   const totalEgresos = filtered.filter((m) => m.type === "EGRESO").reduce((a, m) => a + m.abono, 0)
+  const totalPorPagar = filtered
+    .filter((m) => m.operationStatus === "POR_PAGAR" && m.type === "EGRESO")
+    .reduce((a, m) => a + (m.invoiceAmount ?? m.aPagar), 0)
+
+  const handlePaid = (movementId: string) => {
+    setActionError(null)
+    startTransition(async () => {
+      const result = await markMovementPaid(movementId)
+      if ("error" in result) setActionError(result.error)
+      else router.refresh()
+    })
+  }
+
+  const handlePending = (movementId: string) => {
+    setActionError(null)
+    startTransition(async () => {
+      const result = await markMovementPending(movementId)
+      if ("error" in result) setActionError(result.error)
+      else router.refresh()
+    })
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -55,6 +123,21 @@ export function CashFlowClientPage({
               Datos de demostración. Conecta la base de datos para ver movimientos reales.
             </p>
             <DemoBadge />
+          </div>
+        )}
+
+        {actionError && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+            <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+            <p className="text-xs text-red-800">{actionError}</p>
+            <button onClick={() => setActionError(null)} className="ml-auto text-xs text-red-500 hover:text-red-700">✕</button>
+          </div>
+        )}
+
+        {isPending && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="w-3 h-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+            <p className="text-xs text-blue-700">Actualizando movimiento...</p>
           </div>
         )}
 
@@ -87,6 +170,13 @@ export function CashFlowClientPage({
           </div>
         </div>
 
+        {!isDemo && totalPorPagar > 0 && (
+          <div className="flex items-center gap-2 px-1 text-xs text-amber-700">
+            <span className="font-medium">Por pagar: {fmt(totalPorPagar)}</span>
+            <span className="text-muted-foreground">({filtered.filter((m) => m.operationStatus === "POR_PAGAR" && m.type === "EGRESO").length} movimientos pendientes)</span>
+          </div>
+        )}
+
         <Card>
           <CardContent className="p-0">
             {filtered.length === 0 ? (
@@ -106,32 +196,38 @@ export function CashFlowClientPage({
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">N° Orden</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Estado</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Categoría</th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Parte</th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Factura</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Proveedor / Parte</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Descripción</th>
+                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Importe</th>
                       <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Abono</th>
-                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">A Pagar</th>
+                      <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Por pagar</th>
                       <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Saldo</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {filtered.map((m) => (
-                      <tr key={m.id} className="hover:bg-muted/30 transition-colors">
+                      <tr key={m.id} className={`hover:bg-muted/30 transition-colors ${isPending ? "opacity-60" : ""}`}>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{fmtDate(m.date)}</td>
                         <td className="px-4 py-3"><TypeBadge type={m.type as "INGRESO" | "EGRESO"} /></td>
                         <td className="px-4 py-3">
-                          {m.origin === "ORDEN_COMPRA" && <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">OC</span>}
+                          {m.origin === "ORDEN_COMPRA"   && <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700">OC</span>}
                           {m.origin === "ORDEN_SERVICIO" && <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">OS</span>}
-                          {m.origin === "MANUAL" && <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">Manual</span>}
+                          {m.origin === "MANUAL"         && <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">Manual</span>}
+                          {m.origin === "IMPORTADO"      && <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500">Import.</span>}
                         </td>
                         <td className="px-4 py-3 font-mono text-[10px] text-muted-foreground">{m.orderNumber ?? "—"}</td>
                         <td className="px-4 py-3">
                           <StatusBadge status={m.operationStatus as "CANCELADO" | "COBRADO" | "ADELANTO" | "POR_PAGAR" | "POR_COBRAR" | "DEVOLUCIONES" | "OTROS"} />
                         </td>
                         <td className="px-4 py-3 text-foreground">{m.category.replace(/_/g, " ")}</td>
-                        <td className="px-4 py-3 text-foreground max-w-[160px] truncate">{m.party}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{m.invoiceNumber ?? "—"}</td>
+                        <td className="px-4 py-3 text-foreground max-w-[140px] truncate">{m.party}</td>
+                        <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{m.description ?? "—"}</td>
+                        <td className="px-4 py-3 text-right tabular-nums text-foreground font-medium">
+                          {m.invoiceAmount != null ? fmt(m.invoiceAmount) : "—"}
+                        </td>
                         <td className={`px-4 py-3 text-right tabular-nums font-medium ${m.type === "INGRESO" ? "text-emerald-700" : "text-red-600"}`}>
-                          {fmt(m.abono)}
+                          {m.abono > 0 ? fmt(m.abono) : "—"}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-amber-700">
                           {m.aPagar > 0 ? fmt(m.aPagar) : "—"}
@@ -139,12 +235,20 @@ export function CashFlowClientPage({
                         <td className="px-4 py-3 text-right tabular-nums font-semibold text-foreground">
                           {fmt(m.saldo)}
                         </td>
+                        <td className="px-4 py-3">
+                          <PaidAction
+                            movement={m}
+                            isDemo={isDemo}
+                            onPaid={handlePaid}
+                            onPending={handlePending}
+                          />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot className="border-t-2 border-border bg-muted/20">
                     <tr>
-                      <td colSpan={8} className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+                      <td colSpan={9} className="px-4 py-3 text-xs font-semibold text-muted-foreground">
                         Totales ({filtered.length} movimientos)
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-xs">
@@ -152,7 +256,7 @@ export function CashFlowClientPage({
                         {" / "}
                         <span className="text-red-600 font-semibold">-{fmt(totalEgresos)}</span>
                       </td>
-                      <td colSpan={2} />
+                      <td colSpan={3} />
                     </tr>
                   </tfoot>
                 </table>

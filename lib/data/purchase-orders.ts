@@ -13,6 +13,9 @@ export type PurchaseOrderRow = {
   status: string
   paymentStatus: string
   responsible: string
+  hasCashMovement: boolean
+  cashMovementStatus: string | null
+  cashMovementId: string | null
 }
 
 export async function getPurchaseOrders(): Promise<PurchaseOrderRow[]> {
@@ -34,6 +37,12 @@ export async function getPurchaseOrders(): Promise<PurchaseOrderRow[]> {
           take: 1,
           orderBy: { id: "asc" },
         },
+        cashMovements: {
+          select: { id: true, operationStatus: true },
+          where: { isVoid: false },
+          take: 1,
+          orderBy: { createdAt: "desc" },
+        },
       },
       orderBy: { issueDate: "desc" },
       where: { isVoid: false },
@@ -50,6 +59,14 @@ export async function getPurchaseOrders(): Promise<PurchaseOrderRow[]> {
       status: r.status,
       paymentStatus: r.paymentStatus,
       responsible: r.responsible.name,
+      hasCashMovement: r.cashMovements.length > 0,
+      cashMovementStatus: r.cashMovements[0]?.operationStatus ?? null,
+      cashMovementId: r.cashMovements[0]?.id ?? null,
     }))
-  }, demoPurchaseOrders as PurchaseOrderRow[])
+  }, (demoPurchaseOrders as unknown[]).map((r) => ({
+    ...(r as PurchaseOrderRow),
+    hasCashMovement: false,
+    cashMovementStatus: null,
+    cashMovementId: null,
+  })) as PurchaseOrderRow[])
 }

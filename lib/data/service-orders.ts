@@ -14,6 +14,9 @@ export type ServiceOrderRow = {
   status: string
   paymentStatus: string
   responsible: string
+  hasCashMovement: boolean
+  cashMovementStatus: string | null
+  cashMovementId: string | null
 }
 
 export async function getServiceOrders(): Promise<ServiceOrderRow[]> {
@@ -32,6 +35,12 @@ export async function getServiceOrders(): Promise<ServiceOrderRow[]> {
         pendingAmount: true,
         supplier: { select: { name: true } },
         responsible: { select: { name: true } },
+        cashMovements: {
+          select: { id: true, operationStatus: true },
+          where: { isVoid: false },
+          take: 1,
+          orderBy: { createdAt: "desc" },
+        },
       },
       orderBy: { issueDate: "desc" },
       where: { isVoid: false },
@@ -49,6 +58,14 @@ export async function getServiceOrders(): Promise<ServiceOrderRow[]> {
       status: r.status,
       paymentStatus: r.paymentStatus,
       responsible: r.responsible.name,
+      hasCashMovement: r.cashMovements.length > 0,
+      cashMovementStatus: r.cashMovements[0]?.operationStatus ?? null,
+      cashMovementId: r.cashMovements[0]?.id ?? null,
     }))
-  }, demoServiceOrders as ServiceOrderRow[])
+  }, (demoServiceOrders as unknown[]).map((r) => ({
+    ...(r as ServiceOrderRow),
+    hasCashMovement: false,
+    cashMovementStatus: null,
+    cashMovementId: null,
+  })) as ServiceOrderRow[])
 }
