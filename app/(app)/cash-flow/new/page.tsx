@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { Header } from "@/components/header"
+import { createCashMovement } from "@/app/actions/cash-movements"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Calculator } from "lucide-react"
+import { ArrowLeft, Calculator, AlertCircle } from "lucide-react"
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-PE", {
@@ -26,12 +27,22 @@ const fmt = (n: number) =>
 
 export default function NewMovementPage() {
   const [type, setType] = useState<"INGRESO" | "EGRESO">("EGRESO")
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [operationStatus, setOperationStatus] = useState<string>("")
+  const [paymentMethod, setPaymentMethod] = useState<string>("")
+  const [operationNumber, setOperationNumber] = useState("")
+  const [category, setCategory] = useState<string>("")
+  const [description, setDescription] = useState("")
+  const [invoiceNumber, setInvoiceNumber] = useState("")
   const [abono, setAbono] = useState(0)
   const [invoiceAmount, setInvoiceAmount] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   const income = type === "INGRESO" ? abono : 0
   const expense = type === "EGRESO" ? abono : 0
   const aPagar = Math.max(0, invoiceAmount - abono)
+  const canSubmit = !!date && abono > 0 && !!operationStatus && !!category
 
   return (
     <div className="flex flex-col min-h-full">
@@ -47,6 +58,13 @@ export default function NewMovementPage() {
         </Link>
 
         <div className="space-y-5">
+          {error && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+              <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+              <p className="text-xs text-red-800">{error}</p>
+            </div>
+          )}
+
           {/* Sección: General */}
           <Card>
             <CardHeader className="pb-3">
@@ -55,7 +73,12 @@ export default function NewMovementPage() {
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Fecha *</Label>
-                <Input type="date" className="h-9 text-sm" />
+                <Input
+                  type="date"
+                  className="h-9 text-sm"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -76,7 +99,7 @@ export default function NewMovementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Tipo de operación *</Label>
-                <Select>
+                <Select onValueChange={(v) => setOperationStatus((v as string | null) ?? "")}>
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
@@ -94,7 +117,7 @@ export default function NewMovementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Método de pago</Label>
-                <Select>
+                <Select onValueChange={(v) => setPaymentMethod((v as string | null) ?? "")}>
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
@@ -111,7 +134,12 @@ export default function NewMovementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">N° de operación</Label>
-                <Input placeholder="Ej: 6071757" className="h-9 text-sm" />
+                <Input
+                  placeholder="Ej: 6071757"
+                  className="h-9 text-sm"
+                  value={operationNumber}
+                  onChange={(e) => setOperationNumber(e.target.value)}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -121,7 +149,6 @@ export default function NewMovementPage() {
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Se poblará desde la BD */}
                     <SelectItem value="demo-1">Paola Yarasca</SelectItem>
                     <SelectItem value="demo-2">Carlos Alva</SelectItem>
                     <SelectItem value="demo-3">Allison Aburto</SelectItem>
@@ -176,7 +203,7 @@ export default function NewMovementPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Categoría *</Label>
-                <Select>
+                <Select onValueChange={(v) => setCategory((v as string | null) ?? "")}>
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
@@ -210,6 +237,8 @@ export default function NewMovementPage() {
                 <Input
                   placeholder="Descripción del movimiento..."
                   className="h-9 text-sm"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
             </CardContent>
@@ -223,7 +252,12 @@ export default function NewMovementPage() {
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">N° de factura</Label>
-                <Input placeholder="Ej: F001-0089" className="h-9 text-sm" />
+                <Input
+                  placeholder="Ej: F001-0089"
+                  className="h-9 text-sm"
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -351,12 +385,27 @@ export default function NewMovementPage() {
               Cancelar
             </Link>
             <Button
+              disabled={isPending || !canSubmit}
               onClick={() => {
-                // TODO: implementar POST a /api/cash-movements en Fase 3
-                alert("Guardar: implementar API en Fase 3")
+                setError(null)
+                startTransition(async () => {
+                  const result = await createCashMovement({
+                    date,
+                    type,
+                    operationStatus,
+                    category,
+                    description: description || undefined,
+                    invoiceNumber: invoiceNumber || undefined,
+                    invoiceAmount: invoiceAmount > 0 ? invoiceAmount : undefined,
+                    abono,
+                    paymentMethod: paymentMethod || undefined,
+                    operationNumber: operationNumber || undefined,
+                  })
+                  if ("error" in result) setError(result.error)
+                })
               }}
             >
-              Guardar movimiento
+              {isPending ? "Guardando..." : "Guardar movimiento"}
             </Button>
           </div>
         </div>

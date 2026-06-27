@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { demoSuppliers, demoItems } from "@/lib/demo-data"
+import { createPurchaseOrder } from "@/app/actions/purchase-orders"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Trash2, ArrowLeft, Info } from "lucide-react"
+import { Plus, Trash2, ArrowLeft, Info, AlertCircle } from "lucide-react"
 
 interface LineItem {
   id: string
@@ -43,6 +44,8 @@ export default function NewPurchaseOrderPage() {
   const [expectedDate, setExpectedDate] = useState("")
   const [notes, setNotes] = useState("")
   const [lines, setLines] = useState<LineItem[]>([emptyLine()])
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   const updateLine = (id: string, field: keyof LineItem, value: string) => {
     setLines((prev) =>
@@ -92,9 +95,16 @@ export default function NewPurchaseOrderPage() {
         <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
           <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
           <p className="text-xs text-blue-800">
-            El número de orden (OC-2026-XXX) se generará automáticamente al guardar. Los datos solo se guardarán cuando la base de datos esté conectada.
+            El número de orden (OC-2026-XXX) se generará automáticamente al guardar.
           </p>
         </div>
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+            <p className="text-xs text-red-800">{error}</p>
+          </div>
+        )}
 
         {/* Cabecera */}
         <Card>
@@ -279,20 +289,34 @@ export default function NewPurchaseOrderPage() {
             Volver a la lista
           </Link>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              title="Disponible con BD conectada"
-            >
+            <Button variant="outline" size="sm" disabled>
               Guardar borrador
             </Button>
             <Button
               size="sm"
-              disabled={!supplierId || lines.every((l) => !l.description)}
-              title="Disponible con BD conectada"
+              disabled={isPending || !supplierId || lines.every((l) => !l.description)}
+              onClick={() => {
+                setError(null)
+                startTransition(async () => {
+                  const result = await createPurchaseOrder({
+                    supplierId: supplierId!,
+                    issueDate,
+                    expectedDate: expectedDate || undefined,
+                    notes: notes || undefined,
+                    lines: lines
+                      .filter((l) => l.description)
+                      .map((l) => ({
+                        description: l.description,
+                        quantity: parseFloat(l.quantity) || 0,
+                        unit: l.unit,
+                        unitPrice: parseFloat(l.unitPrice) || 0,
+                      })),
+                  })
+                  if ("error" in result) setError(result.error)
+                })
+              }}
             >
-              Generar orden
+              {isPending ? "Guardando..." : "Generar orden"}
             </Button>
           </div>
         </div>
