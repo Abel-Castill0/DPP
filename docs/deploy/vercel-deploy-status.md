@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-27 (vía Supabase MCP + Vercel MCP)  
-**Estado:** ⚠️ 1 acción requerida en Supabase Dashboard — Supavisor no activado
+**Última verificación:** 2026-06-27 (vía Supabase MCP + Vercel MCP + verificación HTTP)  
+**Estado:** ✅ Producción OK — todas las rutas responden 200
 
 ---
 
@@ -9,8 +9,8 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `75a3f45` docs update | READY | 2026-06-27 |
-| `dpl_DpT58RxEMwfrPv8M6q8BBmSQcHVx` | `75a3f45` (latest) | READY + aliased | 2026-06-27 |
+| `dpp-pink.vercel.app` (producción) | `c828c76` (latest) | ✅ READY + aliased | 2026-06-27 |
+| `dpl_9QkepajrzxRL3sE3xh6NB9Mhi9di` | `c828c76` | ✅ READY → 200 en 8/8 rutas | 2026-06-27 |
 
 **Proyecto Vercel:** `prj_GMwUTB3OWKGAXoac1jiFAPwa1NeS`  
 **Repo:** `https://github.com/Abel-Castill0/DPP.git` → rama `main`  
@@ -50,14 +50,14 @@
 
 | Ruta | Estado |
 |------|--------|
-| `/` (redirect) | ⚠️ 307→500 (falla en landing) |
-| `/dashboard` | ❌ 500 (P1001 → ENOTFOUND tenant) |
-| `/suppliers` | ❌ 500 |
-| `/items` | ❌ 500 |
-| `/purchase-orders` | ❌ 500 |
-| `/service-orders` | ❌ 500 |
-| `/cash-flow` | ❌ 500 |
-| `/reports` | ✅ 200 (estático, sin DB) |
+| `/` | ✅ 200 |
+| `/dashboard` | ✅ 200 |
+| `/suppliers` | ✅ 200 |
+| `/items` | ✅ 200 |
+| `/purchase-orders` | ✅ 200 |
+| `/service-orders` | ✅ 200 |
+| `/cash-flow` | ✅ 200 |
+| `/reports` | ✅ 200 |
 
 ---
 
@@ -70,35 +70,14 @@
 - Causa: `db.[ref].supabase.co` resuelve solo a IPv6. Vercel IAD1 usa IPv4 para salidas.
 - Fix aplicado: DATABASE_URL actualizado a `aws-0-us-east-1.pooler.supabase.com:6543`
 
-### Error 2 — Pendiente ❌
-**Supavisor: tenant/user not found**
-- 10 errores: `(ENOTFOUND) tenant/user postgres.utvfbsebrvgyoxlvicqc not found` (XX000 FATAL)
-- Deployment afectado: `dpl_DpT58RxEMwfrPv8M6q8BBmSQcHVx` (LATEST — producción actual)
-- Último error: `2026-06-27T21:31:58Z`
-- Causa: El proyecto NO está registrado en el backend de Supavisor. El pooler externo IPv4 rechaza la conexión porque el "tenant" no fue inicializado.
-- Fix requerido: Activar Connection Pooling en el Supabase Dashboard (acción manual, ~1 minuto)
+### Error 2 — Resuelto ✅
+**Supavisor: tenant/user not found → activado**
+- Causa: El proyecto no estaba registrado en Supavisor.
+- Fix: Usuario activó Connection Pooling en Dashboard → Supabase inicializó el tenant automáticamente.
+- DATABASE_URL actualizado a host `aws-1-us-east-1.pooler.supabase.com:6543` (pooler node asignado al proyecto).
+- Último deployment post-fix: `dpl_9QkepajrzxRL3sE3xh6NB9Mhi9di` → 8/8 rutas 200 ✅
 
 ---
-
-## ⚠️ Acción requerida (única — ~1 minuto)
-
-**Ir al Supabase Dashboard → habilitar Supavisor:**
-
-```
-https://supabase.com/dashboard/project/utvfbsebrvgyoxlvicqc/settings/database
-```
-
-1. Buscar sección **"Connection Pooling"**
-2. Activar el pooler → modo **Transaction** (ya seleccionado por defecto)
-3. Guardar
-
-> El DATABASE_URL en Vercel ya tiene el formato correcto:
-> - Host: `aws-0-us-east-1.pooler.supabase.com`
-> - Puerto: `6543` (transaction mode)
-> - Usuario: `postgres.utvfbsebrvgyoxlvicqc`
->
-> Solo falta que Supabase registre el proyecto en el backend de Supavisor,
-> lo que ocurre automáticamente al activar el pooler en el Dashboard.
 
 ---
 
@@ -120,9 +99,9 @@ https://supabase.com/dashboard/project/utvfbsebrvgyoxlvicqc/settings/database
 **Problema:** `db.[ref].supabase.co` → solo IPv6. Vercel IAD1 es IPv4 saliente.  
 **Fix aplicado:** DATABASE_URL → `aws-0-us-east-1.pooler.supabase.com:6543` (IPv4 ✅)
 
-### 5. Supavisor "tenant not found" (pendiente)
+### 5. Supavisor "tenant not found" → resuelto ✅
 **Problema:** Supabase free tier no activa Supavisor automáticamente al crear proyecto.  
-**Fix:** Activar manualmente en Dashboard (ver instrucción arriba).
+**Fix aplicado:** Usuario activó Connection Pooling en Dashboard. DATABASE_URL actualizado a `aws-1-us-east-1.pooler.supabase.com:6543` con `?pgbouncer=true`. DIRECT_URL corregido a host directo `db.[ref].supabase.co:5432`.
 
 ---
 
@@ -130,7 +109,7 @@ https://supabase.com/dashboard/project/utvfbsebrvgyoxlvicqc/settings/database
 
 | Variable | Estado |
 |----------|--------|
-| `DATABASE_URL` | ✅ Pooler `aws-0-us-east-1.pooler.supabase.com:6543` |
+| `DATABASE_URL` | ✅ Pooler `aws-1-us-east-1.pooler.supabase.com:6543` + `?pgbouncer=true` |
 | `DIRECT_URL` | ✅ Conexión directa (para migraciones locales) |
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ URL pública Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Clave anónima |
@@ -157,7 +136,7 @@ https://supabase.com/dashboard/project/utvfbsebrvgyoxlvicqc/settings/database
 
 ## Próximos pasos
 
-1. **Usuario → Supabase Dashboard:** Activar Connection Pooling (link arriba)
-2. **Verificar:** `https://dpp-pink.vercel.app/dashboard` debería devolver 200
-3. **Prueba QA:** Crear "Proveedor QA Producción" e "Item QA Producción" via formularios
+1. ✅ ~~Activar Connection Pooling en Supabase Dashboard~~
+2. ✅ ~~Verificar 8/8 rutas → 200~~
+3. **QA:** Crear "Proveedor QA Producción" e "Item QA Producción" via formularios en producción
 4. **Fase 3:** Flujo de caja real conectado a OC/OS
