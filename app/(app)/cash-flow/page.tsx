@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getCashMovements } from "@/lib/data/cash-movements"
 import { CashFlowClientPage } from "@/components/cash-flow-client-page"
 

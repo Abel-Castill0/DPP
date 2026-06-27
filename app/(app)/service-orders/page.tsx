@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getServiceOrders } from "@/lib/data/service-orders"
 import { ServiceOrdersClientPage } from "@/components/service-orders-client-page"
 

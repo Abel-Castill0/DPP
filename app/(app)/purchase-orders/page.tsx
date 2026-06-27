@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getPurchaseOrders } from "@/lib/data/purchase-orders"
 import { PurchaseOrdersClientPage } from "@/components/purchase-orders-client-page"
 

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getItems } from "@/lib/data/items"
 import { ItemsClientPage } from "@/components/items-client-page"
 
