@@ -1,0 +1,471 @@
+// DPP Control — Schema v2
+// Empresa: Diseño Punto y Plano S.A.C.
+// Módulos activos: OC, OS, Proveedores, Insumos, Flujo de Caja, Dashboard
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  GERENCIA
+  FINANZAS
+  PRODUCCION
+  COMPRAS
+  SOLO_LECTURA
+}
+
+enum SupplierType {
+  TALLER
+  PROVEEDOR_INSUMO
+  SERVICIO
+  TRANSPORTE
+  OTRO
+}
+
+enum ItemType {
+  INSUMO
+  SERVICIO
+}
+
+enum ItemCategory {
+  TELA
+  HILO
+  AVIOS
+  CORTE
+  CONFECCION
+  ESTAMPADO
+  ACABADO
+  EMPAQUE
+  MOVILIDAD
+  OTROS
+}
+
+enum ServiceProcess {
+  CORTE
+  CONFECCION
+  ESTAMPADO
+  BORDADO
+  ACABADO
+  EMPAQUE
+  LAVADO
+  OTROS
+}
+
+enum OrderStatus {
+  BORRADOR
+  EMITIDA
+  APROBADA
+  EN_PROCESO
+  COMPLETADA
+  ANULADA
+}
+
+enum PaymentStatus {
+  PENDIENTE
+  ADELANTO
+  PARCIAL
+  PAGADO
+  VENCIDO
+}
+
+enum MovementType {
+  INGRESO
+  EGRESO
+}
+
+enum MovementOrigin {
+  ORDEN_COMPRA
+  ORDEN_SERVICIO
+  MANUAL
+  IMPORTADO
+}
+
+enum OperationStatus {
+  CANCELADO
+  ADELANTO
+  COBRADO
+  POR_PAGAR
+  POR_COBRAR
+  DEVOLUCIONES
+  OTROS
+}
+
+enum PaymentMethod {
+  TRANSFERENCIA
+  DEPOSITO
+  EFECTIVO
+  CHEQUE
+  TARJETA
+  OTRO
+}
+
+enum InvoiceStatus {
+  PENDIENTE
+  PARCIAL
+  PAGADA
+  COBRADA
+  ANULADA
+}
+
+enum PartyType {
+  CLIENTE
+  PROVEEDOR
+}
+
+enum ExpenseCategory {
+  CONFECCION
+  CORTE
+  ESTAMPADO
+  ACABADO_EMPAQUE
+  MATERIA_PRIMA
+  PLANILLA
+  IMPUESTO
+  MOVILIDAD
+  COMISION
+  CAJA_CHICA
+  PRESTAMO
+  INVERSION
+  COMPRA
+  VENTA
+  OTROS
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  VOID
+  IMPORT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+// ─── Usuarios ─────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(SOLO_LECTURA)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  cashMovementsCreated CashMovement[] @relation("CreatedBy")
+  cashMovementsUpdated CashMovement[] @relation("UpdatedBy")
+  purchaseOrders       PurchaseOrder[]
+  serviceOrders        ServiceOrder[]
+  auditLogs            AuditLog[]
+  documents            Document[]
+
+  @@map("users")
+}
+
+// ─── Proveedores ──────────────────────────────────────────────────────────────
+
+model Supplier {
+  id           String       @id @default(uuid())
+  code         String?      @unique
+  name         String
+  ruc          String?      @unique
+  supplierType SupplierType @default(OTRO) @map("supplier_type")
+  contactName  String?      @map("contact_name")
+  contactPhone String?      @map("contact_phone")
+  contactEmail String?      @map("contact_email")
+  address      String?
+  bankName     String?      @map("bank_name")
+  bankAccount  String?      @map("bank_account")
+  bankCci      String?      @map("bank_cci")
+  notes        String?
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  purchaseOrders PurchaseOrder[]
+  serviceOrders  ServiceOrder[]
+  invoices       Invoice[]
+  cashMovements  CashMovement[]
+
+  @@map("suppliers")
+}
+
+// ─── Insumos y servicios ──────────────────────────────────────────────────────
+
+model Item {
+  id          String       @id @default(uuid())
+  code        String?      @unique
+  name        String
+  itemType    ItemType     @map("item_type")
+  category    ItemCategory
+  unit        String       @default("UND")
+  description String?
+  isActive    Boolean      @default(true) @map("is_active")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@map("items")
+}
+
+// ─── Centros de costo ─────────────────────────────────────────────────────────
+
+model CostCenter {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+
+  cashMovements CashMovement[]
+
+  @@map("cost_centers")
+}
+
+// ─── Estilos / Proformas ──────────────────────────────────────────────────────
+
+model Style {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  fabric      String?
+  composition String?
+  clientName  String?  @map("client_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  serviceOrders ServiceOrder[]
+  cashMovements CashMovement[]
+
+  @@map("styles")
+}
+
+// ─── Órdenes de compra ────────────────────────────────────────────────────────
+
+model PurchaseOrder {
+  id             String        @id @default(uuid())
+  orderNumber    String        @unique @map("order_number")
+  supplierId     String        @map("supplier_id")
+  responsibleId  String        @map("responsible_id")
+  issueDate      DateTime      @map("issue_date")
+  expectedDate   DateTime?     @map("expected_date")
+  status         OrderStatus   @default(BORRADOR)
+  paymentStatus  PaymentStatus @default(PENDIENTE) @map("payment_status")
+  totalAmount    Decimal       @default(0) @map("total_amount") @db.Decimal(14, 2)
+  paidAmount     Decimal       @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  pendingAmount  Decimal       @default(0) @map("pending_amount") @db.Decimal(14, 2)
+  notes          String?
+  isVoid         Boolean       @default(false) @map("is_void")
+  voidReason     String?       @map("void_reason")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  supplier      Supplier            @relation(fields: [supplierId], references: [id])
+  responsible   User                @relation(fields: [responsibleId], references: [id])
+  items         PurchaseOrderItem[]
+  cashMovements CashMovement[]
+  invoices      Invoice[]
+  documents     Document[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String  @id @default(uuid())
+  purchaseOrderId String  @map("purchase_order_id")
+  itemId          String? @map("item_id")
+  description     String
+  quantity        Decimal @db.Decimal(10, 3)
+  unit            String  @default("UND")
+  unitPrice       Decimal @map("unit_price") @db.Decimal(14, 2)
+  subtotal        Decimal @db.Decimal(14, 2)
+  notes           String?
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  item          Item?         @relation(fields: [itemId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+// ─── Órdenes de servicio ──────────────────────────────────────────────────────
+
+model ServiceOrder {
+  id            String         @id @default(uuid())
+  orderNumber   String         @unique @map("order_number")
+  supplierId    String         @map("supplier_id")
+  responsibleId String         @map("responsible_id")
+  process       ServiceProcess
+  styleId       String?        @map("style_id")
+  proformaCode  String?        @map("proforma_code")
+  issueDate     DateTime       @map("issue_date")
+  expectedDate  DateTime?      @map("expected_date")
+  status        OrderStatus    @default(BORRADOR)
+  paymentStatus PaymentStatus  @default(PENDIENTE) @map("payment_status")
+  totalAmount   Decimal        @default(0) @map("total_amount") @db.Decimal(14, 2)
+  paidAmount    Decimal        @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  pendingAmount Decimal        @default(0) @map("pending_amount") @db.Decimal(14, 2)
+  notes         String?
+  isVoid        Boolean        @default(false) @map("is_void")
+  voidReason    String?        @map("void_reason")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  supplier      Supplier           @relation(fields: [supplierId], references: [id])
+  responsible   User               @relation(fields: [responsibleId], references: [id])
+  style         Style?             @relation(fields: [styleId], references: [id])
+  items         ServiceOrderItem[]
+  cashMovements CashMovement[]
+  invoices      Invoice[]
+  documents     Document[]
+
+  @@map("service_orders")
+}
+
+model ServiceOrderItem {
+  id             String  @id @default(uuid())
+  serviceOrderId String  @map("service_order_id")
+  description    String
+  quantity       Decimal @db.Decimal(10, 3)
+  unit           String  @default("UND")
+  unitPrice      Decimal @map("unit_price") @db.Decimal(14, 2)
+  subtotal       Decimal @db.Decimal(14, 2)
+  notes          String?
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+
+  @@map("service_order_items")
+}
+
+// ─── Facturas ────────────────────────────────────────────────────────────────
+
+model Invoice {
+  id              String        @id @default(uuid())
+  partyType       PartyType     @map("party_type")
+  supplierId      String?       @map("supplier_id")
+  purchaseOrderId String?       @map("purchase_order_id")
+  serviceOrderId  String?       @map("service_order_id")
+  invoiceNumber   String        @map("invoice_number")
+  issueDate       DateTime      @map("issue_date")
+  dueDate         DateTime?     @map("due_date")
+  currency        String        @default("PEN")
+  totalAmount     Decimal       @map("total_amount") @db.Decimal(14, 2)
+  paidAmount      Decimal       @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  pendingAmount   Decimal       @map("pending_amount") @db.Decimal(14, 2)
+  status          InvoiceStatus @default(PENDIENTE)
+  notes           String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  supplier      Supplier?      @relation(fields: [supplierId], references: [id])
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  serviceOrder  ServiceOrder?  @relation(fields: [serviceOrderId], references: [id])
+  cashMovements CashMovement[]
+  payments      Payment[]
+
+  @@map("invoices")
+}
+
+// ─── Flujo de Caja ────────────────────────────────────────────────────────────
+
+model CashMovement {
+  id              String          @id @default(uuid())
+  date            DateTime
+  type            MovementType
+  origin          MovementOrigin  @default(MANUAL)
+  operationStatus OperationStatus @map("operation_status")
+  paymentMethod   PaymentMethod?  @map("payment_method")
+  operationNumber String?         @map("operation_number")
+  purchaseOrderId String?         @map("purchase_order_id")
+  serviceOrderId  String?         @map("service_order_id")
+  supplierId      String?         @map("supplier_id")
+  invoiceId       String?         @map("invoice_id")
+  costCenterId    String?         @map("cost_center_id")
+  styleId         String?         @map("style_id")
+  description     String?
+  category        ExpenseCategory @default(OTROS)
+  invoiceAmount   Decimal?        @map("invoice_amount") @db.Decimal(14, 2)
+  abono           Decimal         @db.Decimal(14, 2)
+  retencion       Decimal         @default(0) @db.Decimal(14, 2)
+  detraccion      Decimal         @default(0) @db.Decimal(14, 2)
+  incomeAmount    Decimal         @default(0) @map("income_amount") @db.Decimal(14, 2)
+  expenseAmount   Decimal         @default(0) @map("expense_amount") @db.Decimal(14, 2)
+  notes           String?
+  createdById     String          @map("created_by_id")
+  updatedById     String?         @map("updated_by_id")
+  isVoid          Boolean         @default(false) @map("is_void")
+  voidReason      String?         @map("void_reason")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  serviceOrder  ServiceOrder?  @relation(fields: [serviceOrderId], references: [id])
+  supplier      Supplier?      @relation(fields: [supplierId], references: [id])
+  invoice       Invoice?       @relation(fields: [invoiceId], references: [id])
+  costCenter    CostCenter?    @relation(fields: [costCenterId], references: [id])
+  style         Style?         @relation(fields: [styleId], references: [id])
+  createdBy     User           @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?          @relation("UpdatedBy", fields: [updatedById], references: [id])
+  payments      Payment[]
+  documents     Document[]
+
+  @@map("cash_movements")
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  invoiceId      String   @map("invoice_id")
+  cashMovementId String   @map("cash_movement_id")
+  amount         Decimal  @db.Decimal(14, 2)
+  date           DateTime
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
+  cashMovement CashMovement @relation(fields: [cashMovementId], references: [id])
+
+  @@map("payments")
+}
+
+model Document {
+  id              String   @id @default(uuid())
+  entityType      String   @map("entity_type")
+  entityId        String   @map("entity_id")
+  fileName        String   @map("file_name")
+  fileUrl         String   @map("file_url")
+  mimeType        String?  @map("mime_type")
+  uploadedById    String   @map("uploaded_by_id")
+  cashMovementId  String?  @map("cash_movement_id")
+  purchaseOrderId String?  @map("purchase_order_id")
+  serviceOrderId  String?  @map("service_order_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  uploadedBy    User           @relation(fields: [uploadedById], references: [id])
+  cashMovement  CashMovement?  @relation(fields: [cashMovementId], references: [id])
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  serviceOrder  ServiceOrder?  @relation(fields: [serviceOrderId], references: [id])
+
+  @@map("documents")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  userId     String      @map("user_id")
+  action     AuditAction
+  entityType String      @map("entity_type")
+  entityId   String      @map("entity_id")
+  changes    Json?
+  ipAddress  String?     @map("ip_address")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
