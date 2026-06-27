@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, withDb } from "@/lib/prisma"
 import { demoServiceOrders } from "@/lib/demo-data"
 
 export type ServiceOrderRow = {
@@ -17,8 +17,7 @@ export type ServiceOrderRow = {
 }
 
 export async function getServiceOrders(): Promise<ServiceOrderRow[]> {
-  if (!process.env.DATABASE_URL) return demoServiceOrders as ServiceOrderRow[]
-  try {
+  return withDb(async () => {
     const rows = await prisma.serviceOrder.findMany({
       select: {
         id: true,
@@ -51,7 +50,5 @@ export async function getServiceOrders(): Promise<ServiceOrderRow[]> {
       paymentStatus: r.paymentStatus,
       responsible: r.responsible.name,
     }))
-  } catch {
-    return demoServiceOrders as ServiceOrderRow[]
-  }
+  }, demoServiceOrders as ServiceOrderRow[])
 }

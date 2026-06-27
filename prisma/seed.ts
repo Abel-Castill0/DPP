@@ -3,10 +3,24 @@
  * Solo inserta datos de demostración. No contiene información real de la empresa.
  * Ejecutar: npx prisma db seed
  */
+import { existsSync } from "node:fs"
+import { config as dotenvConfig } from "dotenv"
 import { PrismaClient } from "../lib/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+// Load .env.claude.local if present (dev with real credentials)
+if (existsSync(".env.claude.local")) {
+  dotenvConfig({ path: ".env.claude.local", override: true })
+} else {
+  dotenvConfig()
+}
+
+if (!process.env.DATABASE_URL) {
+  console.error("❌ DATABASE_URL no configurado. Crea .env.claude.local o .env con DATABASE_URL.")
+  process.exit(1)
+}
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {

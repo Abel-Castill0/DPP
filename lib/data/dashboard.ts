@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, withDb } from "@/lib/prisma"
 import { demoKpis, demoMonthlyChart, demoTopCobrar, demoTopPagar } from "@/lib/demo-data"
 
 export type DashboardKpis = typeof demoKpis
@@ -13,16 +13,15 @@ export type DashboardData = {
   topPagar: TopPagar
 }
 
+const demoData: DashboardData = {
+  kpis: demoKpis,
+  monthlyChart: demoMonthlyChart,
+  topCobrar: demoTopCobrar,
+  topPagar: demoTopPagar,
+}
+
 export async function getDashboardData(): Promise<DashboardData> {
-  if (!process.env.DATABASE_URL) {
-    return {
-      kpis: demoKpis,
-      monthlyChart: demoMonthlyChart,
-      topCobrar: demoTopCobrar,
-      topPagar: demoTopPagar,
-    }
-  }
-  try {
+  return withDb(async () => {
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
@@ -48,30 +47,21 @@ export async function getDashboardData(): Promise<DashboardData> {
     const ingresosMes = thisMes.filter((m) => m.type === "INGRESO").reduce((a, m) => a + Number(m.abono), 0)
     const egresosMes = thisMes.filter((m) => m.type === "EGRESO").reduce((a, m) => a + Number(m.abono), 0)
 
-    const kpis: DashboardKpis = {
-      saldoActual,
-      ingresosMes,
-      egresosMes,
-      porCobrar: demoKpis.porCobrar,
-      porPagar: demoKpis.porPagar,
-      facturaVencidas: demoKpis.facturaVencidas,
-      ocPendientes,
-      osPendientes,
-      _isDemo: false,
-    }
-
     return {
-      kpis,
+      kpis: {
+        saldoActual,
+        ingresosMes,
+        egresosMes,
+        porCobrar: demoKpis.porCobrar,
+        porPagar: demoKpis.porPagar,
+        facturaVencidas: demoKpis.facturaVencidas,
+        ocPendientes,
+        osPendientes,
+        _isDemo: false,
+      },
       monthlyChart: demoMonthlyChart,
       topCobrar: demoTopCobrar,
       topPagar: demoTopPagar,
     }
-  } catch {
-    return {
-      kpis: demoKpis,
-      monthlyChart: demoMonthlyChart,
-      topCobrar: demoTopCobrar,
-      topPagar: demoTopPagar,
-    }
-  }
+  }, demoData)
 }

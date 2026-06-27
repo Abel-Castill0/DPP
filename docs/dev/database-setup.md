@@ -1,85 +1,116 @@
 # Configuración de base de datos — DPP Control
 
-## Variables de entorno
+## Fuente de credenciales
 
-Crea un archivo `.env` en la raíz de `dpp-control/` (nunca lo subas a git):
-
-```env
-DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/dpp_control"
-```
-
-Para Supabase (producción futura):
-```env
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT].supabase.co:5432/postgres"
-NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT].supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJh..."
-SUPABASE_SERVICE_ROLE_KEY="eyJh..."
-```
-
-## Comandos esenciales
+### Desarrollo local
+Las credenciales reales se guardan en `.env.claude.local` (gitignored por `.env.*.local`).  
+**Nunca commitear este archivo.**
 
 ```bash
-# 1. Generar el cliente Prisma (siempre después de cambiar el schema)
-npm run prisma:generate
+# Verificar que está protegido:
+git check-ignore -v .env.claude.local   # debe mostrar .gitignore:36
+```
 
-# 2. Crear/aplicar migraciones (requiere DATABASE_URL configurado)
-npm run prisma:migrate
+El archivo debe contener al menos:
 
-# 3. Insertar datos demo
+```
+DATABASE_URL="postgresql://..."    # Pooler Supabase, puerto 6543
+DIRECT_URL="postgresql://..."     # Conexión directa, puerto 5432 (para migraciones)
+NEXT_PUBLIC_SUPABASE_URL="..."
+NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
+SUPABASE_SERVICE_ROLE_KEY="..."   # Solo backend — nunca en componentes cliente
+```
+
+### CI / Producción (Vercel)
+Las variables se configuran como Environment Variables en el panel de Vercel.  
+`.env` solo contiene comentarios — no tiene valores sensibles.
+
+---
+
+## Carga de variables
+
+Prisma CLI detecta `.env.claude.local` automáticamente (desde Prisma 7).  
+La app Next.js NO carga `.env.claude.local` automáticamente.  
+`prisma.config.ts` lo carga explícitamente cuando existe.
+
+---
+
+## Obtener URLs de Supabase
+
+1. Ir a https://supabase.com → tu proyecto
+2. **Settings → Database → Connection string**
+3. Copiar:
+   - **Transaction mode** (puerto 6543) → `DATABASE_URL`
+   - **Session mode** o **Direct connection** (puerto 5432) → `DIRECT_URL`
+4. Si el proyecto está **pausado**: Dashboard → Settings → General → **Unpause project**
+
+### Verificar conectividad antes de migrar
+
+```bash
+node -e "
+require('dotenv').config({ path: '.env.claude.local' });
+const net = require('net');
+const url = new URL(process.env.DIRECT_URL || process.env.DATABASE_URL);
+const s = new net.Socket();
+s.setTimeout(5000);
+s.connect(parseInt(url.port)||5432, url.hostname, ()=>{console.log('REACHABLE');s.destroy()});
+s.on('error', e=>console.log('UNREACHABLE:',e.code));
+"
+```
+
+---
+
+## Comandos
+
+```bash
+# 1. Generar cliente Prisma (no requiere BD)
+npx prisma generate
+
+# 2. Primera migración (requiere DIRECT_URL en .env.claude.local)
+npx prisma migrate dev --name init_phase2
+
+# 3. Seed demo (requiere DATABASE_URL)
 npm run db:seed
 
-# 4. Abrir Prisma Studio (explorador visual de la BD)
-npm run prisma:studio
+# 4. Verificar conexión y CRUD mínimo
+npx tsx scripts/verify-db.ts
 
-# 5. Resetear la BD demo completa (¡borra todo!)
-npm run db:reset
+# 5. Prisma Studio (explorador visual)
+npx prisma studio
+
+# 6. Reset completo (borra todos los datos)
+npm run db:reset && npm run db:seed
 ```
 
-## Setup local completo (PostgreSQL)
+---
 
-```bash
-# Instalar PostgreSQL si no está instalado:
-# https://www.postgresql.org/download/windows/
+## Modo demo (sin BD)
 
-# Crear la base de datos:
-psql -U postgres -c "CREATE DATABASE dpp_control;"
+Si `DATABASE_URL` no está configurado, la app usa `lib/demo-data.ts`:
+- Los listados muestran datos de ejemplo con badge "DEMO"
+- Los formularios muestran mensaje informativo al guardar
+- El build estático funciona completamente sin BD
 
-# Configurar .env con la URL correcta
-# Luego:
-npm run prisma:migrate    # crea las tablas
-npm run db:seed           # inserta datos demo
-npm run prisma:studio     # verifica datos en el navegador
-npm run dev               # inicia la app
-```
+En producción, si DATABASE_URL está configurado pero la BD falla, `withDb()` lanza el error en lugar de hacer fallback silencioso.  
+En desarrollo, `withDb()` loggea un warning controlado y usa demo data.
 
-## Sin base de datos (modo demo)
+---
 
-Si `DATABASE_URL` **no está configurado**, la app funciona en modo demo:
-- Todas las páginas de listado muestran datos de ejemplo
-- Los formularios no guardan datos (muestran error informativo)
-- El badge "DEMO" es visible en la interfaz
+## Variables de entorno — reglas de seguridad
 
-No se necesita ninguna configuración adicional para correr la app en modo demo.
+| Variable | Dónde va | Nunca en... |
+|----------|----------|-------------|
+| `DATABASE_URL` | `.env.claude.local`, Vercel | Código fuente, Git |
+| `DIRECT_URL` | `.env.claude.local`, Vercel | Código fuente, Git |
+| `SUPABASE_SERVICE_ROLE_KEY` | Solo server actions/API routes | Componentes cliente, `NEXT_PUBLIC_*` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Safe en cliente | Git commit (aunque riesgo bajo) |
 
-## Resetear datos demo localmente
+---
 
-```bash
-npm run db:reset    # borra todas las tablas y migra desde cero
-npm run db:seed     # vuelve a insertar datos demo
-```
+## Pendiente
 
-## Setup con Supabase (fase futura)
-
-1. Crear proyecto en https://supabase.com
-2. Obtener `DATABASE_URL` desde Settings → Database → Connection string
-3. Configurar `.env` con la URL de Supabase
-4. Ejecutar `npm run prisma:migrate` para crear las tablas en Supabase
-5. Ejecutar `npm run db:seed` para insertar datos demo en Supabase
-
-## Pendiente para fases siguientes
-
-- [ ] Auth real con Supabase Auth o NextAuth
-- [ ] Row-level security (RLS) en Supabase
-- [ ] Migraciones automáticas en CI/CD
+- [ ] Unpause o recrear proyecto Supabase (hostnames ENOTFOUND en verificación 2026-06-27)
+- [ ] Auth real con Supabase Auth (Fase 4)
+- [ ] Row Level Security (RLS) antes de producción
 - [ ] Backup automatizado
-- [ ] Variables de entorno en producción (Vercel / Railway)
+- [ ] Variables de entorno en Vercel para deploy

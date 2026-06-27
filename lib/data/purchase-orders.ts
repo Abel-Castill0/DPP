@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, withDb } from "@/lib/prisma"
 import { demoPurchaseOrders } from "@/lib/demo-data"
 
 export type PurchaseOrderRow = {
@@ -16,8 +16,7 @@ export type PurchaseOrderRow = {
 }
 
 export async function getPurchaseOrders(): Promise<PurchaseOrderRow[]> {
-  if (!process.env.DATABASE_URL) return demoPurchaseOrders as PurchaseOrderRow[]
-  try {
+  return withDb(async () => {
     const rows = await prisma.purchaseOrder.findMany({
       select: {
         id: true,
@@ -52,7 +51,5 @@ export async function getPurchaseOrders(): Promise<PurchaseOrderRow[]> {
       paymentStatus: r.paymentStatus,
       responsible: r.responsible.name,
     }))
-  } catch {
-    return demoPurchaseOrders as PurchaseOrderRow[]
-  }
+  }, demoPurchaseOrders as PurchaseOrderRow[])
 }

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, withDb } from "@/lib/prisma"
 import { demoItems } from "@/lib/demo-data"
 
 export type ItemRow = {
@@ -12,21 +12,20 @@ export type ItemRow = {
 }
 
 export async function getItems(): Promise<ItemRow[]> {
-  if (!process.env.DATABASE_URL) return demoItems as ItemRow[]
-  try {
-    return await prisma.item.findMany({
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        itemType: true,
-        category: true,
-        unit: true,
-        isActive: true,
-      },
-      orderBy: { code: "asc" },
-    })
-  } catch {
-    return demoItems as ItemRow[]
-  }
+  return withDb(
+    () =>
+      prisma.item.findMany({
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          itemType: true,
+          category: true,
+          unit: true,
+          isActive: true,
+        },
+        orderBy: { code: "asc" },
+      }),
+    demoItems as ItemRow[],
+  )
 }

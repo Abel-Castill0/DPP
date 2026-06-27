@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, withDb } from "@/lib/prisma"
 import { demoSuppliers } from "@/lib/demo-data"
 
 export type SupplierRow = {
@@ -14,23 +14,22 @@ export type SupplierRow = {
 }
 
 export async function getSuppliers(): Promise<SupplierRow[]> {
-  if (!process.env.DATABASE_URL) return demoSuppliers as SupplierRow[]
-  try {
-    return await prisma.supplier.findMany({
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        ruc: true,
-        supplierType: true,
-        contactName: true,
-        contactPhone: true,
-        bankName: true,
-        isActive: true,
-      },
-      orderBy: { code: "asc" },
-    })
-  } catch {
-    return demoSuppliers as SupplierRow[]
-  }
+  return withDb(
+    () =>
+      prisma.supplier.findMany({
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          ruc: true,
+          supplierType: true,
+          contactName: true,
+          contactPhone: true,
+          bankName: true,
+          isActive: true,
+        },
+        orderBy: { code: "asc" },
+      }),
+    demoSuppliers as SupplierRow[],
+  )
 }

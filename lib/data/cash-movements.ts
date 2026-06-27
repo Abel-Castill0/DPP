@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, withDb } from "@/lib/prisma"
 import { demoCashMovements } from "@/lib/demo-data"
 
 export type CashMovementRow = {
@@ -19,8 +19,7 @@ export type CashMovementRow = {
 }
 
 export async function getCashMovements(): Promise<CashMovementRow[]> {
-  if (!process.env.DATABASE_URL) return demoCashMovements as unknown as CashMovementRow[]
-  try {
+  return withDb(async () => {
     const rows = await prisma.cashMovement.findMany({
       select: {
         id: true,
@@ -63,7 +62,5 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
       }
     })
     return withBalance.reverse()
-  } catch {
-    return demoCashMovements as unknown as CashMovementRow[]
-  }
+  }, demoCashMovements as unknown as CashMovementRow[])
 }
