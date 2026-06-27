@@ -4,10 +4,10 @@ import { useState } from "react"
 import { Header } from "@/components/header"
 import { DemoBadge } from "@/components/status-badge"
 import type { SupplierRow } from "@/lib/data/suppliers"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 import {
   Users,
   Plus,
@@ -80,10 +80,13 @@ export function SuppliersClientPage({
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button size="sm" className="gap-2 h-8 text-xs" disabled title="Disponible con BD conectada">
+          <Link
+            href="/suppliers/new"
+            className="inline-flex items-center gap-2 h-8 px-3 text-xs font-medium rounded-[min(var(--radius-md),12px)] bg-primary text-primary-foreground hover:bg-primary/80 transition-colors"
+          >
             <Plus className="w-3.5 h-3.5" />
             Nuevo proveedor
-          </Button>
+          </Link>
         </div>
 
         <Card>
