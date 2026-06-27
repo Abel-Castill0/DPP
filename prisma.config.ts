@@ -15,6 +15,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
     // DIRECT_URL bypasses the Supabase connection pooler (PgBouncer).

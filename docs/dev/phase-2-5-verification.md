@@ -1,7 +1,7 @@
 # Fase 2.5 — Verificación real del estado de BD y CRUD mínimo
 
-**Fecha de verificación:** 2026-06-27
-**Commit base:** `8ad00b3` (phase 2.5)
+**Fecha de verificación:** 2026-06-27 (actualizado 2026-06-27 — Supabase conectado)
+**Commit base:** `a999715` (phase 2.5 + supabase connection)
 
 ---
 
@@ -112,35 +112,40 @@ Ambas URLs (`DATABASE_URL` y `DIRECT_URL`) fallan con `ENOTFOUND` — el nombre 
 | `npm run build`                      | ✅ 0 errores TS, 19 rutas estáticas |
 | `.env.claude.local` gitignored       | ✅ Confirmado con `git check-ignore` |
 | Variables detectadas (solo nombres)  | ✅ 13 variables encontradas |
-| Conectividad DATABASE_URL            | ❌ ENOTFOUND |
-| Conectividad DIRECT_URL              | ❌ ENOTFOUND |
+| Conectividad DATABASE_URL            | ✅ REACHABLE (PostgreSQL 17.6) |
+| Conectividad DIRECT_URL              | ✅ REACHABLE (port 5432 directo) |
 
 ---
 
-## 5. Lo que NO se pudo verificar
+## 5. Verificado tras conectar Supabase (2026-06-27)
 
-- Migración: `npx prisma migrate dev` — ENOTFOUND al conectar
-- Seed: `npm run db:seed` — requiere migración previa
-- CRUD real: create/list desde Prisma — requiere BD disponible
-- Verificación con `scripts/verify-db.ts` — requiere BD disponible
+| Acción | Resultado |
+|--------|-----------|
+| Migración `init_phase2` | ✅ Aplicada exitosamente |
+| `npm run db:seed` | ✅ 4 proveedores, 8 ítems, 3 OC, 2 OS, 3 movimientos |
+| `npx tsx scripts/verify-db.ts` | ✅ 7 tablas, CRUD completo, auto-limpieza OK |
+| App local con datos reales | ✅ `isDemo: false`, 13/13 rutas HTTP 200 |
+
+### Diagnóstico de las URLs placeholder
+Las URLs originales en `.env.claude.local` eran literalmente `postgresql://...` (placeholders, no reales).  
+Se reconstruyeron correctamente usando `NEXT_PUBLIC_SUPABASE_URL` + `DATABASE_PASSWORD`:
+- `DIRECT_URL` = `postgresql://postgres:[pass]@db.[project-ref].supabase.co:5432/postgres`
+- `DATABASE_URL` = misma URL (direct connection para desarrollo; pooler opcional para producción)
 
 ---
 
-## 6. Comandos para cuando Supabase esté disponible
+## 6. Comandos verificados y operativos
 
 ```bash
-# 1. Verificar conectividad
-npx tsx scripts/verify-db.ts   # debe mostrar "UNREACHABLE" si sigue sin BD
+# Verificar conexión y CRUD mínimo
+npx tsx scripts/verify-db.ts   # ✅ todos los ✅ tras conectar
 
-# 2. Migrar (requiere DIRECT_URL alcanzable)
-npx prisma migrate dev --name init_phase2
+# Migrar
+npx prisma migrate dev --name init_phase2   # ✅ aplicada
 
-# 3. Seed
-npm run db:seed
+# Seed
+npm run db:seed   # ✅ datos demo en BD real
 
-# 4. Verificar CRUD
-npx tsx scripts/verify-db.ts   # ahora debe mostrar todos los ✅
-
-# 5. Studio
-npx prisma studio
+# Studio
+npx prisma studio   # explorador visual
 ```
