@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 6 OC/OS PDFs — deploy producción OK, QA autenticado manual pendiente  
-**Estado:** ✅ Producción OK — Phase 6 OC/OS PDFs merged + deployed | QA sin sesión 8/8 ✓ | QA autenticado: checklist manual pendiente confirmación usuario
+**Última verificación:** 2026-06-28 — Phase 6 OC/OS PDFs — deploy producción OK, QA completo  
+**Estado:** ✅ Producción OK — Phase 6 OC/OS PDFs merged + deployed | QA sin sesión 8/8 ✓ | QA autenticado 8/8 ✓ | Excel regresión 200 XLSX ✓
 
 ---
 
@@ -177,4 +177,4 @@
 13. ✅ ~~Deploy producción Phase 7A — commit 5b1540e, merge 33df899, deploy dpl_AZvwN44bWrTyNbmNShdDHG82W6am, 7/7 rutas + 7/7 Excel + 7/7 PDF + 8/8 inputs inválidos controlados, secretos: ninguno~~
 14. ✅ ~~Deploy producción Phase 7B — commit 23f31ee (rama) + merge d4df68e (main), deploy dpl_CgANQGfuuSLYAWmmFdD28zAR6nSY, /login 200 + 7/7 rutas protegidas + /api/reports/export → 401, AUTH_SECRET en Vercel, admin en prod DB~~
 15. ✅ Preview Phase 6 OC/OS PDFs — rama `phase-6-order-pdfs`, commit `04e4689`, deploy `dpl_9MwZveT8qL5UHnRgUJoKNpup2SvT` READY — QA autenticado 20/20 ✓, regresión 148/148 ✓
-16. ⏳ Deploy producción Phase 6 OC/OS PDFs — commit `6b67899` (merge --no-ff), deploy `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx`, sin sesión 8/8 ✓, regresión pre-merge 148/148 ✓ — QA autenticado manual pendiente confirmación usuario
+16. ✅ Deploy producción Phase 6 OC/OS PDFs — commit `6b67899` (merge --no-ff), deploy `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx`, sin sesión 8/8 ✓, autenticado 8/8 ✓ (PDF OC 2546b + OS 2639b + %PDF- + 404 + Excel 200 + dashboard 200), regresión 148/148 ✓, secretos: ninguno
