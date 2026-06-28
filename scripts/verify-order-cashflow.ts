@@ -3,7 +3,9 @@
  * Run: npx tsx scripts/verify-order-cashflow.ts
  * Requires DATABASE_URL in .env.local
  */
-import "dotenv/config"
+import * as dotenv from "dotenv"
+dotenv.config({ path: ".env.claude.local", override: true })
+dotenv.config({ path: ".env.local", override: true })
 import { PrismaClient } from "../lib/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 

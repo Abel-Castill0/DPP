@@ -29,6 +29,9 @@ export async function createPurchaseOrder(data: {
   }
 
   try {
+    const supplier = await prisma.supplier.findUnique({ where: { id: data.supplierId }, select: { id: true } })
+    if (!supplier) return { error: "El proveedor seleccionado no existe. Recarga la página e intenta de nuevo." }
+
     const demoUser = await prisma.user.findFirst()
     if (!demoUser) return { error: "No hay usuario demo en la BD. Ejecuta el seed primero." }
 

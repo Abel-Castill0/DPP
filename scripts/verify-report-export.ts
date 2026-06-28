@@ -3,7 +3,9 @@
  * Tests generateReportsWorkbook() directly (no HTTP server needed).
  * Run: npx tsx --env-file=.env.claude.local scripts/verify-report-export.ts
  */
-import "dotenv/config"
+import * as dotenv from "dotenv"
+dotenv.config({ path: ".env.claude.local", override: true })
+dotenv.config({ path: ".env.local", override: true })
 import ExcelJS from "exceljs"
 import { buildFilters, getReportsData } from "../lib/data/reports"
 import { generateReportsWorkbook, EXPECTED_SHEET_NAMES } from "../lib/excel/reports-workbook"

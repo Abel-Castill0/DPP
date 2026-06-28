@@ -9,6 +9,7 @@ dotenv.config({ path: ".env.claude.local", override: true })
 dotenv.config({ path: ".env.local",        override: true })
 dotenv.config({ path: ".env" })
 
+import * as https from "https"
 import { createSessionToken } from "../lib/auth"
 
 const PROD = process.env.PROD_URL ?? "https://dpp-pink.vercel.app"
@@ -18,7 +19,6 @@ function fail(l: string, d = "") { console.log(`  ✗  ${l}${d ? " — " + d : "
 
 function getStatus(url: string, headers: Record<string, string> = {}): Promise<{ status: number; ct: string; size: number; magic: string }> {
   return new Promise(resolve => {
-    const https = require("https") as typeof import("https")
     const opts = new URL(url)
     const req = https.request({
       hostname: opts.hostname, path: opts.pathname + opts.search,

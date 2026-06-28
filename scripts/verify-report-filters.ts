@@ -2,7 +2,9 @@
  * QA script: Phase 4C — Report filters
  * Run: npx tsx --env-file=.env.claude.local scripts/verify-report-filters.ts
  */
-import "dotenv/config"
+import * as dotenv from "dotenv"
+dotenv.config({ path: ".env.claude.local", override: true })
+dotenv.config({ path: ".env.local", override: true })
 import { PrismaClient } from "../lib/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { buildFilters, getReportsData } from "../lib/data/reports"
