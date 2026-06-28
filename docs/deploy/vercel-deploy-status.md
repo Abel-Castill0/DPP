@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 7B producción + QA autenticado + rotación contraseña admin  
-**Estado:** ✅ Producción OK — Phase 7B activa | auth 8/8 rutas protegidas | login/logout/export QA autenticado OK | contraseña admin rotada
+**Última verificación:** 2026-06-28 — Phase 6 OC/OS PDFs — preview READY  
+**Estado:** ✅ Producción OK — Phase 7B activa | Preview Phase 6 PDFs READY — pendiente QA autenticado + merge a producción
 
 ---
 
@@ -9,6 +9,7 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
+| `dpp-n7svet62w-...vercel.app` (preview Phase 6 PDFs) | `04e4689` | ✅ READY — rama `phase-6-order-pdfs` | 2026-06-28 |
 | `dpp-pink.vercel.app` (producción) | `d4df68e` (latest) | ✅ READY + aliased — Phase 7B | 2026-06-28 |
 | `dpl_CgANQGfuuSLYAWmmFdD28zAR6nSY` (Phase 7B prod) | `d4df68e` | ✅ READY — /login 200, 7/7 rutas → /login, /api/reports/export → 401 | 2026-06-28 |
 | `dpp-pink.vercel.app` anterior | `33df899` (latest) | ✅ READY + aliased — Phase 7A | 2026-06-28 |
@@ -173,3 +174,4 @@
 12. ✅ ~~Deploy producción Phase 6A — commit 877f9a5, merge 1445845, deploy dpl_AoS7NJawfnNxU99ZDT1gYinjUFkt, 7/7 rutas 200 + 7/7 endpoints PDF 200 + Excel sin regresión, secretos: ninguno~~
 13. ✅ ~~Deploy producción Phase 7A — commit 5b1540e, merge 33df899, deploy dpl_AZvwN44bWrTyNbmNShdDHG82W6am, 7/7 rutas + 7/7 Excel + 7/7 PDF + 8/8 inputs inválidos controlados, secretos: ninguno~~
 14. ✅ ~~Deploy producción Phase 7B — commit 23f31ee (rama) + merge d4df68e (main), deploy dpl_CgANQGfuuSLYAWmmFdD28zAR6nSY, /login 200 + 7/7 rutas protegidas + /api/reports/export → 401, AUTH_SECRET en Vercel, admin en prod DB~~
+15. ✅ Preview Phase 6 OC/OS PDFs — rama `phase-6-order-pdfs`, commit `04e4689`, deploy `dpl_9MwZveT8qL5UHnRgUJoKNpup2SvT` READY — QA autenticado 20/20 ✓, regresión 148/148 ✓ — listo para merge a producción

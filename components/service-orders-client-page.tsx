@@ -9,7 +9,7 @@ import type { ServiceOrderRow } from "@/lib/data/service-orders"
 import { generateFromServiceOrder } from "@/app/actions/orders-to-cash"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Wrench, Plus, Search, AlertTriangle, SendHorizontal, CheckCircle2, Clock } from "lucide-react"
+import { Wrench, Plus, Search, AlertTriangle, SendHorizontal, CheckCircle2, Clock, FileDown } from "lucide-react"
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 }).format(n)
@@ -192,6 +192,7 @@ export function ServiceOrdersClientPage({
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Pago</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Caja</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Responsable</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">PDF</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -224,6 +225,19 @@ export function ServiceOrdersClientPage({
                             <CajaCell row={os} isDemo={isDemo} onSend={handleSendToCash} />
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{os.responsible}</td>
+                          <td className="px-4 py-3">
+                            {!isDemo && (
+                              <a
+                                href={`/api/service-orders/${os.id}/pdf`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 h-6 px-2 text-[10px] font-medium rounded border border-muted-foreground/30 text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors whitespace-nowrap"
+                              >
+                                <FileDown className="w-3 h-3" />
+                                PDF
+                              </a>
+                            )}
+                          </td>
                         </tr>
                       )
                     })}
