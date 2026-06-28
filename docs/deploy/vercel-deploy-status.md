@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 6 OC/OS PDFs — deploy producción OK, QA completo  
-**Estado:** ✅ Producción OK — Phase 6 OC/OS PDFs merged + deployed | QA sin sesión 8/8 ✓ | QA autenticado 8/8 ✓ | Excel regresión 200 XLSX ✓
+**Última verificación:** 2026-06-28 — Hotfix FK constraint OC/OS — deploy producción OK, QA completo  
+**Estado:** ✅ Producción OK — Hotfix FK suppliers deployed | QA autenticado 8/8 ✓ | OC/OS PDFs OK | Excel regresión OK
 
 ---
 
@@ -9,7 +9,8 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `6b67899` (merge Phase 6 PDFs) | ✅ READY + aliased — Phase 6 OC/OS PDFs | 2026-06-28 |
+| `dpp-pink.vercel.app` (producción) | `84e7c85` (hotfix FK suppliers) | ✅ READY `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` — QA auth 8/8 ✓ | 2026-06-28 |
+| `dpp-pink.vercel.app` anterior | `6b67899` (merge Phase 6 PDFs) | ✅ READY + aliased — Phase 6 OC/OS PDFs | 2026-06-28 |
 | `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx` (Phase 6 PDFs prod) | `6b67899` | ✅ READY — sin sesión 8/8, build 22 rutas, QA auth manual ⏳ | 2026-06-28 |
 | `dpp-n7svet62w-...vercel.app` (preview Phase 6 PDFs) | `04e4689` | ✅ READY — rama `phase-6-order-pdfs` | 2026-06-28 |
 | `dpp-pink.vercel.app` anterior | `d4df68e` | ✅ READY — Phase 7B | 2026-06-28 |
@@ -178,3 +179,4 @@
 14. ✅ ~~Deploy producción Phase 7B — commit 23f31ee (rama) + merge d4df68e (main), deploy dpl_CgANQGfuuSLYAWmmFdD28zAR6nSY, /login 200 + 7/7 rutas protegidas + /api/reports/export → 401, AUTH_SECRET en Vercel, admin en prod DB~~
 15. ✅ Preview Phase 6 OC/OS PDFs — rama `phase-6-order-pdfs`, commit `04e4689`, deploy `dpl_9MwZveT8qL5UHnRgUJoKNpup2SvT` READY — QA autenticado 20/20 ✓, regresión 148/148 ✓
 16. ✅ Deploy producción Phase 6 OC/OS PDFs — commit `6b67899` (merge --no-ff), deploy `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx`, sin sesión 8/8 ✓, autenticado 8/8 ✓ (PDF OC 2546b + OS 2639b + %PDF- + 404 + Excel 200 + dashboard 200), regresión 148/148 ✓, secretos: ninguno
+17. ✅ Hotfix FK constraint OC/OS — commit `84e7c85`, deploy `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` READY — QA autenticado 8/8 ✓, verify-order-create-forms 9/9 ✓, secretos: ninguno
