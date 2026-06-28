@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 6 producción  
-**Estado:** ✅ Producción OK — Phase 6 activa | export Excel 7/7 | export PDF 7/7
+**Última verificación:** 2026-06-28 — Phase 7A producción  
+**Estado:** ✅ Producción OK — Phase 7A activa | export Excel 7/7 | export PDF 7/7 | inputs inválidos 8/8 controlados
 
 ---
 
@@ -9,7 +9,10 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `1445845` (latest) | ✅ READY + aliased — Phase 6 | 2026-06-28 |
+| `dpp-pink.vercel.app` (producción) | `33df899` (latest) | ✅ READY + aliased — Phase 7A | 2026-06-28 |
+| `dpl_AZvwN44bWrTyNbmNShdDHG82W6am` (Phase 7A prod) | `33df899` | ✅ READY — 7/7 rutas + 7/7 Excel + 7/7 PDF + 8/8 inválidos OK | 2026-06-28 |
+| `dpp-pink.vercel.app` anterior | `1445845` | ✅ Phase 6 | 2026-06-28 |
+| `dpl_AoS7NJawfnNxU99ZDT1gYinjUFkt` (Phase 6 prod) | `1445845` | ✅ READY — 7/7 rutas + 7/7 PDF 200 + Excel sin regresión | 2026-06-28 |
 | `dpl_AoS7NJawfnNxU99ZDT1gYinjUFkt` (Phase 6 prod) | `1445845` | ✅ READY — 7/7 rutas + 7/7 PDF 200 + Excel sin regresión | 2026-06-28 |
 | `dpp-pink.vercel.app` anterior | `9c8bc2b` | ✅ Phase 5 | 2026-06-28 |
 | `dpl_CMToo46i2cXrREkps9ydGoWNLrWv` (Phase 5 prod) | `9c8bc2b` | ✅ READY — 7/7 rutas + 7/7 endpoints Excel 200 | 2026-06-28 |
@@ -166,3 +169,4 @@
 10. ✅ ~~Fase 5: Exportación Excel — QA 32/32, preview READY~~
 11. ✅ ~~Deploy producción Phase 5 — commit 9c8bc2b, deploy dpl_CMToo46i2cXrREkps9ydGoWNLrWv, 7/7 rutas 200 + 7/7 endpoints Excel 200, secretos: ninguno~~
 12. ✅ ~~Deploy producción Phase 6A — commit 877f9a5, merge 1445845, deploy dpl_AoS7NJawfnNxU99ZDT1gYinjUFkt, 7/7 rutas 200 + 7/7 endpoints PDF 200 + Excel sin regresión, secretos: ninguno~~
+13. ✅ ~~Deploy producción Phase 7A — commit 5b1540e, merge 33df899, deploy dpl_AZvwN44bWrTyNbmNShdDHG82W6am, 7/7 rutas + 7/7 Excel + 7/7 PDF + 8/8 inputs inválidos controlados, secretos: ninguno~~
