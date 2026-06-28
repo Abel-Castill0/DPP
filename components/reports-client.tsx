@@ -1,6 +1,8 @@
 "use client"
 
-import { AlertTriangle, CreditCard, FileText, CheckCircle2, Clock, Download, FileSpreadsheet } from "lucide-react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { AlertTriangle, CreditCard, FileText, CheckCircle2, Clock, Download, FileSpreadsheet, Filter } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,11 +17,11 @@ const fmtS = (n: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n)
 
 const fmtD = (s: string) =>
-  new Date(s).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" })
+  new Date(s + "T12:00:00").toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" })
 
 const CATEGORY_LABEL: Record<string, string> = {
   CONFECCION: "Confección", CORTE: "Corte", ESTAMPADO: "Estampado",
-  ACABADO_EMPAQUE: "Acabado/Empaque", MATERIA_PRIMA: "Mat. Prima",
+  ACABADO_EMPAQUE: "Acabado/Emp.", MATERIA_PRIMA: "Mat. Prima",
   PLANILLA: "Planilla", IMPUESTO: "Impuesto", MOVILIDAD: "Movilidad",
   COMISION: "Comisión", CAJA_CHICA: "Caja chica", PRESTAMO: "Préstamo",
   INVERSION: "Inversión", COMPRA: "Compra", VENTA: "Venta", OTROS: "Otros",
@@ -44,6 +46,9 @@ const BAR_COLORS = [
   "oklch(0.55 0.15 310)", "oklch(0.55 0.18 60)", "oklch(0.55 0.15 200)",
   "oklch(0.55 0.12 90)", "oklch(0.55 0.12 345)", "oklch(0.55 0.12 230)", "oklch(0.55 0.10 130)",
 ]
+
+const SEL = "w-full h-8 rounded-md border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
+const LBL = "text-[10px] font-medium text-muted-foreground uppercase tracking-wide block mb-1"
 
 // ──── Sub-components ───────────────────────────────────────────────────────────
 
@@ -84,14 +89,203 @@ function EmptyState({ message }: { message: string }) {
   )
 }
 
+// ──── Filter bar ───────────────────────────────────────────────────────────────
+
+function FilterBar({ data }: { data: ReportsData }) {
+  const { filters, supplierList } = data
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+
+  const [range, setRange] = useState(filters.range)
+  const [customStart, setCustomStart] = useState(filters.rawStartDate)
+  const [customEnd, setCustomEnd] = useState(filters.rawEndDate)
+  const [supplierId, setSupplierId] = useState(filters.supplierId ?? "")
+  const [origin, setOrigin] = useState(filters.origin ?? "")
+  const [status, setStatus] = useState(filters.operationStatus ?? "")
+  const [category, setCategory] = useState(filters.category ?? "")
+
+  function apply() {
+    const p = new URLSearchParams()
+    if (range !== "this_month") p.set("range", range)
+    if (range === "custom" && customStart) p.set("startDate", customStart)
+    if (range === "custom" && customEnd) p.set("endDate", customEnd)
+    if (supplierId) p.set("supplierId", supplierId)
+    if (origin) p.set("origin", origin)
+    if (status) p.set("status", status)
+    if (category) p.set("category", category)
+    const qs = p.toString()
+    startTransition(() => { router.push("/reports" + (qs ? "?" + qs : "")) })
+  }
+
+  function clear() {
+    setRange("this_month")
+    setCustomStart("")
+    setCustomEnd("")
+    setSupplierId("")
+    setOrigin("")
+    setStatus("")
+    setCategory("")
+    startTransition(() => { router.push("/reports") })
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-muted-foreground">
+          <Filter className="w-3 h-3" />
+          Filtros
+          {filters.activeCount > 0 && (
+            <span className="ml-1 inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              {filters.activeCount} activo{filters.activeCount !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-3 items-end">
+          {/* Periodo */}
+          <div className="min-w-[140px]">
+            <label className={LBL}>Periodo</label>
+            <select className={SEL} value={range} onChange={(e) => setRange(e.target.value)}>
+              <option value="this_month">Este mes</option>
+              <option value="last_month">Mes anterior</option>
+              <option value="last_30">Últimos 30 días</option>
+              <option value="last_90">Últimos 90 días</option>
+              <option value="this_year">Año actual</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+
+          {/* Custom date inputs */}
+          {range === "custom" && (
+            <>
+              <div className="min-w-[128px]">
+                <label className={LBL}>Desde</label>
+                <input
+                  type="date"
+                  className={SEL}
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                />
+              </div>
+              <div className="min-w-[128px]">
+                <label className={LBL}>Hasta</label>
+                <input
+                  type="date"
+                  className={SEL}
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Proveedor */}
+          <div className="min-w-[140px]">
+            <label className={LBL}>Proveedor</label>
+            <select className={SEL} value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
+              <option value="">Todos</option>
+              {supplierList.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Origen */}
+          <div className="min-w-[140px]">
+            <label className={LBL}>Origen</label>
+            <select className={SEL} value={origin} onChange={(e) => setOrigin(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="ORDEN_COMPRA">Orden de compra</option>
+              <option value="ORDEN_SERVICIO">Orden de servicio</option>
+              <option value="MANUAL">Manual</option>
+            </select>
+          </div>
+
+          {/* Estado */}
+          <div className="min-w-[128px]">
+            <label className={LBL}>Estado pago</label>
+            <select className={SEL} value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="POR_PAGAR">Por pagar</option>
+              <option value="ADELANTO">Adelanto</option>
+              <option value="COBRADO">Cobrado</option>
+              <option value="CANCELADO">Cancelado</option>
+            </select>
+          </div>
+
+          {/* Categoría */}
+          <div className="min-w-[140px]">
+            <label className={LBL}>Categoría</label>
+            <select className={SEL} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Todas</option>
+              <option value="CONFECCION">Confección</option>
+              <option value="CORTE">Corte</option>
+              <option value="ESTAMPADO">Estampado</option>
+              <option value="ACABADO_EMPAQUE">Acabado/Empaque</option>
+              <option value="MATERIA_PRIMA">Mat. Prima</option>
+              <option value="MOVILIDAD">Movilidad</option>
+              <option value="PLANILLA">Planilla</option>
+              <option value="IMPUESTO">Impuesto</option>
+              <option value="OTROS">Otros</option>
+            </select>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2 items-end">
+            <Button
+              variant="outline" size="sm"
+              onClick={clear}
+              disabled={isPending}
+              className="h-8 text-xs"
+            >
+              Limpiar
+            </Button>
+            <Button
+              size="sm"
+              onClick={apply}
+              disabled={isPending}
+              className="h-8 text-xs"
+            >
+              {isPending ? "Cargando…" : "Aplicar filtros"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Active filter summary */}
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          <span className="font-medium">Periodo:</span> {filters.rangeLabel}
+          {filters.activeCount === 0 && (
+            <span className="ml-1 text-muted-foreground/60">· Sin filtros activos</span>
+          )}
+          {filters.activeCount > 0 && (
+            <span className="ml-1">
+              · <span className="text-primary font-medium">
+                {filters.activeCount} filtro{filters.activeCount !== 1 ? "s" : ""} activo{filters.activeCount !== 1 ? "s" : ""}
+              </span>
+            </span>
+          )}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ──── Main component ───────────────────────────────────────────────────────────
 
 export function ReportsClient({ data }: { data: ReportsData }) {
-  const { summary, accountsPayable, monthlyPayments, partialPayments,
-    expensesBySupplier, expensesByCategory, pendingOrders, monthlyFlow, isDemo } = data
+  const {
+    summary, accountsPayable, monthlyPayments, partialPayments,
+    expensesBySupplier, expensesByCategory, pendingOrders, monthlyFlow,
+    filters, isDemo,
+  } = data
+
+  const noDataMsg = "No se encontraron datos para los filtros seleccionados."
 
   return (
-    <div className="flex-1 p-6 space-y-8 max-w-7xl">
+    <div className="flex-1 p-6 space-y-6 max-w-7xl">
+
+      {/* ── Filtros ───────────────────────────────────────────────────────── */}
+      <FilterBar data={data} />
 
       {/* Demo banner */}
       {isDemo && (
@@ -115,7 +309,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
             color="bg-red-50 text-red-600"
           />
           <KpiCard
-            label="Pagado este mes"
+            label="Pagado en el periodo"
             value={fmtS(summary.pagadoEsteMes)}
             sub={`${monthlyPayments.cantidadPagos} pagos registrados`}
             icon={CheckCircle2}
@@ -138,13 +332,13 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </div>
       </section>
 
-      {/* ── Flujo mensual ─────────────────────────────────────────────────── */}
+      {/* ── Flujo por periodo ─────────────────────────────────────────────── */}
       <section>
-        <SectionTitle>Ingresos vs. egresos — últimos 6 meses</SectionTitle>
+        <SectionTitle>Ingresos vs. egresos — {filters.rangeLabel}</SectionTitle>
         <Card>
           <CardContent className="pt-4 pb-2">
             {monthlyFlow.length === 0 ? (
-              <EmptyState message="Sin movimientos en los últimos 6 meses" />
+              <EmptyState message={noDataMsg} />
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={monthlyFlow} barSize={20} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -175,7 +369,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         <Card>
           <CardContent className="p-0">
             {accountsPayable.length === 0 ? (
-              <EmptyState message="No hay cuentas pendientes" />
+              <EmptyState message="No hay cuentas pendientes para los filtros seleccionados." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
@@ -215,18 +409,17 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </Card>
       </section>
 
-      {/* ── Pagos del mes ─────────────────────────────────────────────────── */}
+      {/* ── Pagos del periodo ─────────────────────────────────────────────── */}
       <section>
-        <SectionTitle>Pagos del mes</SectionTitle>
+        <SectionTitle>Pagos del periodo</SectionTitle>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Métodos */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Por método</CardTitle>
             </CardHeader>
             <CardContent>
               {monthlyPayments.metodos.length === 0 ? (
-                <EmptyState message="Sin pagos este mes" />
+                <EmptyState message="Sin pagos en el periodo" />
               ) : (
                 <div className="space-y-2">
                   {monthlyPayments.metodos.map((m, i) => (
@@ -244,16 +437,15 @@ export function ReportsClient({ data }: { data: ReportsData }) {
             </CardContent>
           </Card>
 
-          {/* Lista de pagos recientes */}
           <Card className="lg:col-span-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Últimos pagos ({monthlyPayments.cantidadPagos})
+                Pagos registrados ({monthlyPayments.cantidadPagos})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {monthlyPayments.pagos.length === 0 ? (
-                <EmptyState message="Sin pagos registrados este mes" />
+                <EmptyState message="Sin pagos registrados en el periodo." />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -289,7 +481,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         <Card>
           <CardContent className="p-0">
             {partialPayments.length === 0 ? (
-              <EmptyState message="No hay pagos parciales activos" />
+              <EmptyState message="No hay pagos parciales activos para los filtros seleccionados." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
@@ -341,7 +533,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           <Card>
             <CardContent className="pt-4 pb-2">
               {expensesBySupplier.length === 0 ? (
-                <EmptyState message="Sin egresos registrados" />
+                <EmptyState message={noDataMsg} />
               ) : (
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart
@@ -370,7 +562,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           <Card>
             <CardContent className="p-0">
               {expensesBySupplier.length === 0 ? (
-                <EmptyState message="Sin datos" />
+                <EmptyState message={noDataMsg} />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -407,7 +599,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           <Card>
             <CardContent className="pt-4 pb-2">
               {expensesByCategory.length === 0 ? (
-                <EmptyState message="Sin egresos registrados" />
+                <EmptyState message={noDataMsg} />
               ) : (
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart
@@ -440,7 +632,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
           <Card>
             <CardContent className="p-0">
               {expensesByCategory.length === 0 ? (
-                <EmptyState message="Sin datos" />
+                <EmptyState message={noDataMsg} />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -460,11 +652,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
                           </td>
                           <td className="px-4 py-2.5 text-right tabular-nums">{fmtS(r.total)}</td>
                           <td className="px-4 py-2.5 text-right text-muted-foreground">{r.count}</td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className="inline-flex items-center gap-1">
-                              <span className="tabular-nums">{r.porcentaje}%</span>
-                            </span>
-                          </td>
+                          <td className="px-4 py-2.5 text-right tabular-nums">{r.porcentaje}%</td>
                         </tr>
                       ))}
                     </tbody>
@@ -482,7 +670,7 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         <Card>
           <CardContent className="p-0">
             {pendingOrders.length === 0 ? (
-              <EmptyState message="Todas las órdenes tienen movimiento de caja" />
+              <EmptyState message="No hay órdenes pendientes para los filtros seleccionados." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
@@ -523,12 +711,12 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </Card>
       </section>
 
-      {/* ── Exportar (placeholder) ────────────────────────────────────────── */}
+      {/* ── Exportar (placeholder Fase 5) ────────────────────────────────── */}
       <section>
         <Card className="border-dashed">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-3">
-              La exportación de reportes estará disponible en una fase futura.
+              La exportación de reportes estará disponible en Fase 5.
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled className="gap-2 opacity-50">

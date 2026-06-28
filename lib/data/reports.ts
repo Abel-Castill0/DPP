@@ -1,6 +1,97 @@
 import { prisma, withDb } from "@/lib/prisma"
 
-// ──── Types ────────────────────────────────────────────────────────────────────
+// ──── Filter types ─────────────────────────────────────────────────────────────
+
+export type ReportFilters = {
+  startDate: Date
+  endDate: Date
+  supplierId?: string
+  origin?: string
+  operationStatus?: string
+  category?: string
+  rangeLabel: string
+  activeCount: number
+  range: string
+  rawStartDate: string
+  rawEndDate: string
+}
+
+function toDateStr(d: Date) {
+  return d.toISOString().slice(0, 10)
+}
+
+export function buildFilters(
+  sp: Record<string, string | string[] | undefined>,
+): ReportFilters {
+  const str = (v: string | string[] | undefined): string =>
+    Array.isArray(v) ? (v[0] ?? "") : (v ?? "")
+
+  const range = str(sp.range) || "this_month"
+  const now = new Date()
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+
+  let startDate: Date
+  let endDate: Date = todayEnd
+  let rawStartDate = ""
+  let rawEndDate = ""
+
+  switch (range) {
+    case "last_month":
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+      break
+    case "last_30":
+      startDate = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000)
+      startDate.setHours(0, 0, 0, 0)
+      break
+    case "last_90":
+      startDate = new Date(now.getTime() - 89 * 24 * 60 * 60 * 1000)
+      startDate.setHours(0, 0, 0, 0)
+      break
+    case "this_year":
+      startDate = new Date(now.getFullYear(), 0, 1)
+      break
+    case "custom": {
+      const sd = str(sp.startDate)
+      const ed = str(sp.endDate)
+      startDate = sd ? new Date(sd + "T00:00:00") : new Date(now.getFullYear(), now.getMonth(), 1)
+      endDate = ed ? new Date(ed + "T23:59:59") : todayEnd
+      rawStartDate = sd || toDateStr(startDate)
+      rawEndDate = ed || toDateStr(endDate)
+      break
+    }
+    default:
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+  }
+
+  if (!rawStartDate) rawStartDate = toDateStr(startDate)
+  if (!rawEndDate) rawEndDate = toDateStr(endDate)
+
+  const supplierId = str(sp.supplierId) || undefined
+  const origin = str(sp.origin) || undefined
+  const operationStatus = str(sp.status) || undefined
+  const category = str(sp.category) || undefined
+
+  let activeCount = 0
+  if (range !== "this_month") activeCount++
+  if (supplierId) activeCount++
+  if (origin) activeCount++
+  if (operationStatus) activeCount++
+  if (category) activeCount++
+
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "2-digit" })
+  const rangeLabel = `${fmt(startDate)} – ${fmt(endDate)}`
+
+  return {
+    startDate, endDate,
+    supplierId, origin, operationStatus, category,
+    rangeLabel, activeCount, range,
+    rawStartDate, rawEndDate,
+  }
+}
+
+// ──── Data types ───────────────────────────────────────────────────────────────
 
 export type ExecutiveSummary = {
   totalPorPagar: number
@@ -79,6 +170,8 @@ export type MonthlyFlowRow = {
   neto: number
 }
 
+export type SupplierOption = { id: string; name: string }
+
 export type ReportsData = {
   summary: ExecutiveSummary
   accountsPayable: AccountsPayableRow[]
@@ -88,51 +181,68 @@ export type ReportsData = {
   expensesByCategory: ExpenseByCategoryRow[]
   pendingOrders: PendingOrderRow[]
   monthlyFlow: MonthlyFlowRow[]
+  filters: ReportFilters
+  supplierList: SupplierOption[]
   isDemo: boolean
 }
 
 // ──── Demo fallback ────────────────────────────────────────────────────────────
 
-const demoReports: ReportsData = {
-  summary: {
-    totalPorPagar: 0,
-    pagadoEsteMes: 0,
-    parcialesActivos: 0,
-    ocSinCaja: 0,
-    osSinCaja: 0,
-    topProveedorPorPagar: null,
-    mayorCategoriaGasto: null,
-  },
-  accountsPayable: [],
-  monthlyPayments: { totalPagado: 0, cantidadPagos: 0, metodos: [], pagos: [] },
-  partialPayments: [],
-  expensesBySupplier: [],
-  expensesByCategory: [],
-  pendingOrders: [],
-  monthlyFlow: [],
-  isDemo: true,
+function makeDemoReports(filters: ReportFilters): ReportsData {
+  return {
+    summary: {
+      totalPorPagar: 0, pagadoEsteMes: 0, parcialesActivos: 0,
+      ocSinCaja: 0, osSinCaja: 0,
+      topProveedorPorPagar: null, mayorCategoriaGasto: null,
+    },
+    accountsPayable: [],
+    monthlyPayments: { totalPagado: 0, cantidadPagos: 0, metodos: [], pagos: [] },
+    partialPayments: [],
+    expensesBySupplier: [],
+    expensesByCategory: [],
+    pendingOrders: [],
+    monthlyFlow: [],
+    filters,
+    supplierList: [],
+    isDemo: true,
+  }
 }
 
 // ──── Main query ───────────────────────────────────────────────────────────────
 
-export async function getReportsData(): Promise<ReportsData> {
-  return withDb(async () => {
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+export async function getReportsData(filters?: ReportFilters): Promise<ReportsData> {
+  const f = filters ?? buildFilters({})
 
-    const [movements, payments, ocOrders, osOrders] = await Promise.all([
+  return withDb(async () => {
+    // ── Build Prisma WHERE clauses ────────────────────────────────────────────
+    const movWhere = {
+      isVoid: false,
+      date: { gte: f.startDate, lte: f.endDate },
+      ...(f.supplierId && { supplierId: f.supplierId }),
+      ...(f.origin && { origin: f.origin as never }),
+      ...(f.operationStatus && { operationStatus: f.operationStatus as never }),
+      ...(f.category && { category: f.category as never }),
+    }
+
+    const payWhere = {
+      date: { gte: f.startDate, lte: f.endDate },
+      ...(f.supplierId && { cashMovement: { supplierId: f.supplierId } }),
+    }
+
+    const orderBase = {
+      isVoid: false,
+      cashMovements: { none: { isVoid: false } },
+      issueDate: { gte: f.startDate, lte: f.endDate },
+      ...(f.supplierId && { supplierId: f.supplierId }),
+    }
+
+    const [movements, payments, ocOrders, osOrders, supplierList] = await Promise.all([
       prisma.cashMovement.findMany({
-        where: { isVoid: false },
+        where: movWhere,
         select: {
-          id: true,
-          date: true,
-          type: true,
-          origin: true,
-          operationStatus: true,
-          category: true,
-          invoiceAmount: true,
-          abono: true,
+          id: true, date: true, type: true, origin: true,
+          operationStatus: true, category: true,
+          invoiceAmount: true, abono: true,
           supplier: { select: { name: true } },
           purchaseOrder: { select: { orderNumber: true } },
           serviceOrder: { select: { orderNumber: true } },
@@ -140,49 +250,47 @@ export async function getReportsData(): Promise<ReportsData> {
         orderBy: { date: "desc" },
       }),
       prisma.payment.findMany({
-        where: { date: { gte: startOfMonth } },
+        where: payWhere,
         select: {
-          id: true,
-          amount: true,
-          date: true,
-          paymentMethod: true,
-          operationNumber: true,
+          id: true, amount: true, date: true,
+          paymentMethod: true, operationNumber: true,
           cashMovement: { select: { supplier: { select: { name: true } } } },
         },
         orderBy: { date: "desc" },
       }),
-      // OC sin movimiento de caja activo
       prisma.purchaseOrder.findMany({
-        where: { isVoid: false, cashMovements: { none: { isVoid: false } } },
+        where: orderBase,
         select: {
-          id: true,
-          orderNumber: true,
-          totalAmount: true,
-          status: true,
-          issueDate: true,
-          supplier: { select: { name: true } },
+          id: true, orderNumber: true, totalAmount: true, status: true,
+          issueDate: true, supplier: { select: { name: true } },
         },
         orderBy: { issueDate: "desc" },
       }),
-      // OS sin movimiento de caja activo
       prisma.serviceOrder.findMany({
-        where: { isVoid: false, cashMovements: { none: { isVoid: false } } },
+        where: orderBase,
         select: {
-          id: true,
-          orderNumber: true,
-          totalAmount: true,
-          status: true,
-          issueDate: true,
-          process: true,
-          supplier: { select: { name: true } },
+          id: true, orderNumber: true, totalAmount: true, status: true,
+          issueDate: true, process: true, supplier: { select: { name: true } },
         },
         orderBy: { issueDate: "desc" },
+      }),
+      prisma.supplier.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
       }),
     ])
 
+    // Apply origin filter to pending orders at JS level
+    let filtOc = ocOrders
+    let filtOs = osOrders
+    if (f.origin === "ORDEN_SERVICIO") filtOc = []
+    if (f.origin === "ORDEN_COMPRA") filtOs = []
+    if (f.origin === "MANUAL" || f.origin === "IMPORTADO") { filtOc = []; filtOs = [] }
+
     const egresosAll = movements.filter((m) => m.type === "EGRESO")
 
-    // ── A: Cuentas por pagar (POR_PAGAR + ADELANTO) ───────────────────────────
+    // ── A: Cuentas por pagar ──────────────────────────────────────────────────
     const pendientes = egresosAll
       .map((m) => ({ ...m, inv: Number(m.invoiceAmount ?? 0), ab: Number(m.abono) }))
       .filter((m) => m.inv > 0 && m.inv - m.ab > 0.001)
@@ -203,7 +311,7 @@ export async function getReportsData(): Promise<ReportsData> {
       }))
       .sort((a, b) => b.aPagarTotal - a.aPagarTotal)
 
-    // ── B: Pagos del mes ──────────────────────────────────────────────────────
+    // ── B: Pagos del periodo ──────────────────────────────────────────────────
     const methodMap = new Map<string, number>()
     for (const p of payments) {
       const m = p.paymentMethod
@@ -226,23 +334,27 @@ export async function getReportsData(): Promise<ReportsData> {
     }
 
     // ── C: Parciales activos ──────────────────────────────────────────────────
-    const partialPayments: PartialPaymentRow[] = movements
-      .filter((m) => m.operationStatus === "ADELANTO")
-      .map((m) => {
-        const inv = Number(m.invoiceAmount ?? 0)
-        const ab = Number(m.abono)
-        return {
-          id: m.id,
-          date: m.date.toISOString().slice(0, 10),
-          supplierName: m.supplier?.name ?? "—",
-          origin: m.origin,
-          orderNumber: m.purchaseOrder?.orderNumber ?? m.serviceOrder?.orderNumber ?? null,
-          invoiceAmount: inv,
-          abono: ab,
-          aPagar: inv - ab,
-          porcentajePagado: inv > 0 ? Math.round((ab / inv) * 100) : 0,
-        }
-      })
+    // When operationStatus filter is set, movements already filtered by it —
+    // so ADELANTO check may return empty if filter excludes ADELANTO (correct).
+    const parcialesSource = f.operationStatus
+      ? movements.filter((m) => m.operationStatus === "ADELANTO")
+      : movements.filter((m) => m.operationStatus === "ADELANTO")
+
+    const partialPayments: PartialPaymentRow[] = parcialesSource.map((m) => {
+      const inv = Number(m.invoiceAmount ?? 0)
+      const ab = Number(m.abono)
+      return {
+        id: m.id,
+        date: m.date.toISOString().slice(0, 10),
+        supplierName: m.supplier?.name ?? "—",
+        origin: m.origin,
+        orderNumber: m.purchaseOrder?.orderNumber ?? m.serviceOrder?.orderNumber ?? null,
+        invoiceAmount: inv,
+        abono: ab,
+        aPagar: inv - ab,
+        porcentajePagado: inv > 0 ? Math.round((ab / inv) * 100) : 0,
+      }
+    })
 
     // ── D: Egresos por proveedor (top 10) ────────────────────────────────────
     const supplierMap = new Map<string, { inv: number; ab: number; count: number }>()
@@ -285,7 +397,7 @@ export async function getReportsData(): Promise<ReportsData> {
 
     // ── F: Órdenes pendientes de caja ─────────────────────────────────────────
     const pendingOrders: PendingOrderRow[] = [
-      ...ocOrders.map((o) => ({
+      ...filtOc.map((o) => ({
         id: o.id,
         type: "OC" as const,
         orderNumber: o.orderNumber,
@@ -294,7 +406,7 @@ export async function getReportsData(): Promise<ReportsData> {
         status: o.status,
         issueDate: o.issueDate.toISOString().slice(0, 10),
       })),
-      ...osOrders.map((o) => ({
+      ...filtOs.map((o) => ({
         id: o.id,
         type: "OS" as const,
         orderNumber: o.orderNumber,
@@ -306,12 +418,11 @@ export async function getReportsData(): Promise<ReportsData> {
       })),
     ].sort((a, b) => a.issueDate.localeCompare(b.issueDate))
 
-    // ── G: Flujo mensual (últimos 6 meses) ───────────────────────────────────
+    // ── G: Flujo por periodo (agrupado por mes) ───────────────────────────────
     const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
     const flowMap = new Map<string, { year: number; month: number; ing: number; eg: number }>()
     for (const m of movements) {
       const d = new Date(m.date)
-      if (d < sixMonthsAgo) continue
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
       const e = flowMap.get(key) ?? { year: d.getFullYear(), month: d.getMonth() + 1, ing: 0, eg: 0 }
       if (m.type === "INGRESO") e.ing += Number(m.abono)
@@ -332,22 +443,16 @@ export async function getReportsData(): Promise<ReportsData> {
       totalPorPagar: accountsPayable.reduce((acc, r) => acc + r.aPagarTotal, 0),
       pagadoEsteMes: monthlyPayments.totalPagado,
       parcialesActivos: partialPayments.length,
-      ocSinCaja: ocOrders.length,
-      osSinCaja: osOrders.length,
+      ocSinCaja: filtOc.length,
+      osSinCaja: filtOs.length,
       topProveedorPorPagar: accountsPayable[0]?.supplierName ?? null,
       mayorCategoriaGasto: expensesByCategory[0]?.category ?? null,
     }
 
     return {
-      summary,
-      accountsPayable,
-      monthlyPayments,
-      partialPayments,
-      expensesBySupplier,
-      expensesByCategory,
-      pendingOrders,
-      monthlyFlow,
-      isDemo: false,
+      summary, accountsPayable, monthlyPayments, partialPayments,
+      expensesBySupplier, expensesByCategory, pendingOrders, monthlyFlow,
+      filters: f, supplierList, isDemo: false,
     }
-  }, demoReports)
+  }, makeDemoReports(f))
 }

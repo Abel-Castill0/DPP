@@ -2,10 +2,17 @@ export const dynamic = "force-dynamic"
 
 import { Header } from "@/components/header"
 import { ReportsClient } from "@/components/reports-client"
-import { getReportsData } from "@/lib/data/reports"
+import { buildFilters, getReportsData } from "@/lib/data/reports"
 
-export default async function ReportsPage() {
-  const data = await getReportsData()
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const sp = await searchParams
+  const filters = buildFilters(sp)
+  const data = await getReportsData(filters)
+
   return (
     <div className="flex flex-col min-h-full">
       <Header
