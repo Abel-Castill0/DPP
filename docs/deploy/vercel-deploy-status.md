@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-27 — Phase 4A preview deploy  
-**Estado:** ✅ Producción OK — Phase 3 activa, 7/7 rutas 200 | Preview Phase 4A listo, 5/5 rutas 200
+**Última verificación:** 2026-06-28 — Phase 4A producción  
+**Estado:** ✅ Producción OK — Phase 4A activa, 7/7 rutas 200, pagos parciales operativos
 
 ---
 
@@ -9,8 +9,9 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| Preview Phase 4A (`dpp-5wsddxoif-...vercel.app`) | pendiente commit | ✅ READY — 5/5 rutas 200 | 2026-06-27 |
-| `dpp-pink.vercel.app` (producción) | `8e194e6` (latest) | ✅ READY + aliased — Phase 3 | 2026-06-27 |
+| `dpp-pink.vercel.app` (producción) | `5cb0752` (latest) | ✅ READY + aliased — Phase 4A | 2026-06-28 |
+| Preview Phase 4A (`dpp-5wsddxoif-...vercel.app`) | `5cb0752` | ✅ READY — 5/5 rutas 200 | 2026-06-27 |
+| `dpp-pink.vercel.app` anterior | `8e194e6` | ✅ Phase 3 | 2026-06-27 |
 | `dpl_6P74V7v94Nx4cyQtNV1VviDGeNd6` | `8e194e6` | ✅ READY → 200 en 7/7 rutas | 2026-06-27 |
 | `dpl_9QkepajrzxRL3sE3xh6NB9Mhi9di` | `c828c76` | ✅ READY → 200 en 8/8 rutas | 2026-06-27 |
 
@@ -143,4 +144,5 @@
 2. ✅ ~~Verificar 8/8 rutas → 200~~
 3. ✅ ~~Fase 3: Flujo de caja real conectado a OC/OS — QA 27/27, deploy prod OK~~
 4. ✅ ~~Fase 4A: Pagos parciales — QA 22/22, preview OK (5/5 rutas 200)~~
-5. **Pendiente confirmación:** `vercel deploy --prod` para Phase 4A
+5. ✅ ~~Deploy producción Phase 4A — 7/7 rutas 200, pagos parciales QA OK~~
+6. **Siguiente:** Fase 4B o reportes gerenciales

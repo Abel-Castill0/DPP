@@ -1,6 +1,8 @@
 # Fase 4A — Pagos parciales e historial
 
 Fecha de implementación: 2026-06-27  
+Deploy producción: 2026-06-28 — commit `5cb0752`  
+Producción: https://dpp-pink.vercel.app  
 Preview: https://dpp-5wsddxoif-abelcastillotrabajo-6110s-projects.vercel.app
 
 ## Objetivo
@@ -79,7 +81,9 @@ Resumen financiero siempre visible: Importe / Abonado / Saldo.
 ## QA
 
 Script: `scripts/verify-partial-payments.ts`  
-Resultado: **22/22 pasados** (2026-06-27)
+Resultado: **22/22 pasados** (2026-06-27, 2026-06-28)
+
+Regresión Fase 3 (2026-06-28): **27/27 pasados**
 
 Cobertura:
 1. Primer pago parcial (S/ 400) → ADELANTO, abono=400, aPagar=600
@@ -89,7 +93,13 @@ Cobertura:
 5. Historial con método, observación y responsable
 6. Limpieza de datos QA
 
-Regresión Fase 3: `scripts/verify-order-cashflow.ts` → **27/27 pasados**
+QA funcional producción (2026-06-28, Supabase MCP):
+- Pago parcial S/ 300 → ADELANTO ✓
+- Pago completo S/ 500 → COBRADO, aPagar=0 ✓
+- Historial: 2 pagos con método/notas/responsable ✓
+- Revertir último pago → ADELANTO, abono=300 ✓
+- Sobrepago: bloqueado por validación en server action ✓
+- Dashboard: 0 movimientos POR_PAGAR tras limpieza ✓
 
 ## Limitación conocida
 
