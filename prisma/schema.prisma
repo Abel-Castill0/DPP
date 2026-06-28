@@ -166,6 +166,7 @@ model User {
   serviceOrders        ServiceOrder[]
   auditLogs            AuditLog[]
   documents            Document[]
+  payments             Payment[]
 
   @@map("users")
 }
@@ -421,15 +422,20 @@ model CashMovement {
 }
 
 model Payment {
-  id             String   @id @default(uuid())
-  invoiceId      String   @map("invoice_id")
-  cashMovementId String   @map("cash_movement_id")
-  amount         Decimal  @db.Decimal(14, 2)
-  date           DateTime
-  createdAt      DateTime @default(now()) @map("created_at")
+  id              String        @id @default(uuid())
+  cashMovementId  String        @map("cash_movement_id")
+  invoiceId       String?       @map("invoice_id")
+  amount          Decimal       @db.Decimal(14, 2)
+  date            DateTime
+  paymentMethod   PaymentMethod @default(EFECTIVO) @map("payment_method")
+  operationNumber String?       @map("operation_number")
+  notes           String?
+  createdById     String?       @map("created_by_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
 
-  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
   cashMovement CashMovement @relation(fields: [cashMovementId], references: [id])
+  invoice      Invoice?     @relation(fields: [invoiceId], references: [id])
+  createdBy    User?        @relation(fields: [createdById], references: [id])
 
   @@map("payments")
 }

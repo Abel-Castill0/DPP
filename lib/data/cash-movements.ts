@@ -18,6 +18,7 @@ export type CashMovementRow = {
   invoiceAmount: number | null
   aPagar: number
   saldo: number
+  paymentCount: number
 }
 
 export async function getCashMovements(): Promise<CashMovementRow[]> {
@@ -38,6 +39,7 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
         supplier: { select: { name: true } },
         purchaseOrder: { select: { orderNumber: true } },
         serviceOrder: { select: { orderNumber: true } },
+        _count: { select: { payments: true } },
       },
       orderBy: { date: "desc" },
       where: { isVoid: false },
@@ -65,6 +67,7 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
         invoiceAmount: invoice > 0 ? invoice : null,
         aPagar: Math.max(0, invoice - amount),
         saldo: running,
+        paymentCount: r._count.payments,
       }
     })
     return withBalance.reverse()
@@ -72,5 +75,6 @@ export async function getCashMovements(): Promise<CashMovementRow[]> {
     ...(m as CashMovementRow),
     purchaseOrderId: null,
     serviceOrderId: null,
+    paymentCount: 0,
   })) as CashMovementRow[])
 }

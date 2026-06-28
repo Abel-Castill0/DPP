@@ -638,11 +638,6 @@ export type InvoiceNullableScalarRelationFilter = {
   isNot?: Prisma.InvoiceWhereInput | null
 }
 
-export type InvoiceScalarRelationFilter = {
-  is?: Prisma.InvoiceWhereInput
-  isNot?: Prisma.InvoiceWhereInput
-}
-
 export type InvoiceCreateNestedManyWithoutSupplierInput = {
   create?: Prisma.XOR<Prisma.InvoiceCreateWithoutSupplierInput, Prisma.InvoiceUncheckedCreateWithoutSupplierInput> | Prisma.InvoiceCreateWithoutSupplierInput[] | Prisma.InvoiceUncheckedCreateWithoutSupplierInput[]
   connectOrCreate?: Prisma.InvoiceCreateOrConnectWithoutSupplierInput | Prisma.InvoiceCreateOrConnectWithoutSupplierInput[]
@@ -799,10 +794,12 @@ export type InvoiceCreateNestedOneWithoutPaymentsInput = {
   connect?: Prisma.InvoiceWhereUniqueInput
 }
 
-export type InvoiceUpdateOneRequiredWithoutPaymentsNestedInput = {
+export type InvoiceUpdateOneWithoutPaymentsNestedInput = {
   create?: Prisma.XOR<Prisma.InvoiceCreateWithoutPaymentsInput, Prisma.InvoiceUncheckedCreateWithoutPaymentsInput>
   connectOrCreate?: Prisma.InvoiceCreateOrConnectWithoutPaymentsInput
   upsert?: Prisma.InvoiceUpsertWithoutPaymentsInput
+  disconnect?: Prisma.InvoiceWhereInput | boolean
+  delete?: Prisma.InvoiceWhereInput | boolean
   connect?: Prisma.InvoiceWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.InvoiceUpdateToOneWithWhereWithoutPaymentsInput, Prisma.InvoiceUpdateWithoutPaymentsInput>, Prisma.InvoiceUncheckedUpdateWithoutPaymentsInput>
 }

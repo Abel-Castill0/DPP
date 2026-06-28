@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-27 — Phase 3 deploy (vía Supabase MCP + QA script 27/27)  
-**Estado:** ✅ Producción OK — Phase 3 activa, 7/7 rutas 200, OC/OS→Caja operativo
+**Última verificación:** 2026-06-27 — Phase 4A preview deploy  
+**Estado:** ✅ Producción OK — Phase 3 activa, 7/7 rutas 200 | Preview Phase 4A listo, 5/5 rutas 200
 
 ---
 
@@ -9,6 +9,7 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
+| Preview Phase 4A (`dpp-5wsddxoif-...vercel.app`) | pendiente commit | ✅ READY — 5/5 rutas 200 | 2026-06-27 |
 | `dpp-pink.vercel.app` (producción) | `8e194e6` (latest) | ✅ READY + aliased — Phase 3 | 2026-06-27 |
 | `dpl_6P74V7v94Nx4cyQtNV1VviDGeNd6` | `8e194e6` | ✅ READY → 200 en 7/7 rutas | 2026-06-27 |
 | `dpl_9QkepajrzxRL3sE3xh6NB9Mhi9di` | `c828c76` | ✅ READY → 200 en 8/8 rutas | 2026-06-27 |
@@ -141,4 +142,5 @@
 1. ✅ ~~Activar Connection Pooling en Supabase Dashboard~~
 2. ✅ ~~Verificar 8/8 rutas → 200~~
 3. ✅ ~~Fase 3: Flujo de caja real conectado a OC/OS — QA 27/27, deploy prod OK~~
-4. **Fase 4:** Pagos parciales, formulario de pagos en OC/OS, reportes gerenciales reales
+4. ✅ ~~Fase 4A: Pagos parciales — QA 22/22, preview OK (5/5 rutas 200)~~
+5. **Pendiente confirmación:** `vercel deploy --prod` para Phase 4A

@@ -294,10 +294,14 @@ export type CashMovementScalarFieldEnum = (typeof CashMovementScalarFieldEnum)[k
 
 export const PaymentScalarFieldEnum = {
   id: 'id',
-  invoiceId: 'invoiceId',
   cashMovementId: 'cashMovementId',
+  invoiceId: 'invoiceId',
   amount: 'amount',
   date: 'date',
+  paymentMethod: 'paymentMethod',
+  operationNumber: 'operationNumber',
+  notes: 'notes',
+  createdById: 'createdById',
   createdAt: 'createdAt'
 } as const
 
