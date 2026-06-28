@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-27 — Phase 5 preview  
-**Estado:** ✅ Producción OK — Phase 4C activa | Preview Phase 5 READY — exportación Excel
+**Última verificación:** 2026-06-28 — Phase 5 producción  
+**Estado:** ✅ Producción OK — Phase 5 activa | export Excel 7/7
 
 ---
 
@@ -9,7 +9,8 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `62cf964` (latest) | ✅ READY + aliased — Phase 4C | 2026-06-28 |
+| `dpp-pink.vercel.app` (producción) | `9c8bc2b` (latest) | ✅ READY + aliased — Phase 5 | 2026-06-28 |
+| `dpl_CMToo46i2cXrREkps9ydGoWNLrWv` (Phase 5 prod) | `9c8bc2b` | ✅ READY — 7/7 rutas + 7/7 endpoints Excel 200 | 2026-06-28 |
 | Preview Phase 5 (`dpp-775ci3qh2-...vercel.app`) | dirty (local) | ✅ READY — /reports 200, export QA 32/32 | 2026-06-27 |
 | Preview Phase 4C (`dpp-hp44g3375-...vercel.app`) | `62cf964` | ✅ READY — 7/7 rutas 200 | 2026-06-28 |
 | `dpp-pink.vercel.app` anterior | `ee0555c` | ✅ Phase 4B | 2026-06-28 |
@@ -143,7 +144,7 @@
 | `5cb0752` | feat: partial payments Phase 4A |
 | `ee0555c` | feat: add management reports (Phase 4B) |
 | `62cf964` | feat: add report filters (Phase 4C) |
-| (pendiente) | feat: export filtered reports to excel (Phase 5) |
+| `9c8bc2b` | feat: export filtered reports to excel (Phase 5) |
 
 ---
 
@@ -159,4 +160,4 @@
 8. ✅ ~~Fase 4C: Filtros avanzados en /reports — QA 49/49, preview 7/7 rutas 200~~
 9. ✅ ~~Deploy producción Phase 4C — 7/7 rutas 200 + 7/7 filtros 200, sin secretos~~
 10. ✅ ~~Fase 5: Exportación Excel — QA 32/32, preview READY~~
-11. ⏳ Deploy producción Phase 5 — pendiente confirmación
+11. ✅ ~~Deploy producción Phase 5 — commit 9c8bc2b, deploy dpl_CMToo46i2cXrREkps9ydGoWNLrWv, 7/7 rutas 200 + 7/7 endpoints Excel 200, secretos: ninguno~~

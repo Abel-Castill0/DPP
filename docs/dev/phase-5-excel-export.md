@@ -1,7 +1,7 @@
 # Fase 5 — Exportación de reportes a Excel
 
 Fecha de implementación: 2026-06-27  
-Commit: (pendiente — ver vercel-deploy-status.md)
+Commit: 9c8bc2b
 
 ## Objetivo
 
