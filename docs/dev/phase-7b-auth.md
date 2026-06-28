@@ -83,11 +83,13 @@ Los registros de LOGIN/LOGOUT están envueltos en un try/catch interno separado 
 | passwordHash | `$2b$12$...` (60 chars, bcrypt cost 12) |
 | Creado | 2026-06-28 |
 
-**Recomendación pendiente:** rotar la contraseña del admin. La contraseña usada durante el setup estuvo visible en la sesión de shell. Para rotar: ejecutar `scripts/create-admin-user.ts` con nuevas variables de entorno sin imprimir el valor.
+**Contraseña rotada:** 2026-06-28. La contraseña original del setup fue reemplazada con una nueva generada con `RNGCryptoServiceProvider` (18 bytes, charset 68 chars). Hash actualizado vía `scripts/create-admin-user.ts`. Nueva contraseña guardada en gestor de contraseñas del admin; no registrada en ningún archivo ni commit.
 
 ---
 
 ## QA — Producción verificado
+
+### QA básico (sin autenticación)
 
 | Check | Resultado |
 |-------|-----------|
@@ -100,6 +102,25 @@ Los registros de LOGIN/LOGOUT están envueltos en un try/catch interno separado 
 | `/suppliers` sin sesión → `/login` | ✅ |
 | `/items` sin sesión → `/login` | ✅ |
 | `/api/reports/export` sin sesión → 401 `{"error":"No autorizado."}` | ✅ |
+
+### QA autenticado (post-rotación de contraseña)
+
+| Check | Resultado |
+|-------|-----------|
+| Login inválido → 401 | ✅ |
+| Login válido → 200 + Cookie `dpp-session` (HttpOnly=true, Secure=true) | ✅ |
+| `/dashboard` con sesión → 200 (cache=MISS, SSR real) | ✅ |
+| `/reports` con sesión → 200 | ✅ |
+| `/cash-flow` con sesión → 200 | ✅ |
+| `/purchase-orders` con sesión → 200 | ✅ |
+| `/service-orders` con sesión → 200 | ✅ |
+| `/suppliers` con sesión → 200 | ✅ |
+| `/items` con sesión → 200 | ✅ |
+| `/reports?range=this_year&origin=ORDEN_COMPRA` con sesión → 200 | ✅ |
+| `/api/reports/export?range=this_year` → 200 + XLSX (13832 bytes, magic 504B) | ✅ |
+| Logout → 200 | ✅ |
+| Post-logout `/dashboard` → `x-matched-path: /login` | ✅ |
+| Post-logout `/api/reports/export` → 401 | ✅ |
 
 ---
 

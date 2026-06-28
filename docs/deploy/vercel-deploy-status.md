@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 7B producción  
-**Estado:** ✅ Producción OK — Phase 7B activa | auth 8/8 rutas protegidas | API 1/1 → 401 sin sesión | login form 200
+**Última verificación:** 2026-06-28 — Phase 7B producción + QA autenticado + rotación contraseña admin  
+**Estado:** ✅ Producción OK — Phase 7B activa | auth 8/8 rutas protegidas | login/logout/export QA autenticado OK | contraseña admin rotada
 
 ---
 
