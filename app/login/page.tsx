@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,34 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export default function LoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+      if (res.ok) {
+        router.push("/dashboard")
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? "Credenciales incorrectas.")
+      }
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
@@ -36,43 +65,53 @@ export default function LoginPage() {
             </p>
           </CardHeader>
           <CardContent className="px-6 pb-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-medium">
-                Correo electrónico
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="usuario@dpp.pe"
-                autoComplete="email"
-                className="h-9 text-sm"
-              />
-            </div>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-medium">
+                  Correo electrónico
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="usuario@dpp.pe"
+                  autoComplete="email"
+                  className="h-9 text-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-medium">
-                Contraseña
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                className="h-9 text-sm"
-              />
-            </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-medium">
+                  Contraseña
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  className="h-9 text-sm"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+              </div>
 
-            {/* Auth no implementada aún — placeholder visual */}
-            <Button
-              className="w-full h-9 text-sm font-medium"
-              type="button"
-              onClick={() => {
-                // TODO: implementar autenticación real (NextAuth / Supabase Auth)
-                router.push("/dashboard")
-              }}
-            >
-              Ingresar
-            </Button>
+              {error && (
+                <p className="text-xs text-destructive text-center">{error}</p>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full h-9 text-sm font-medium"
+                disabled={loading}
+              >
+                {loading ? "Verificando..." : "Ingresar"}
+              </Button>
+            </form>
 
             <p className="text-center text-[11px] text-muted-foreground">
               ¿Olvidaste tu contraseña?{" "}
