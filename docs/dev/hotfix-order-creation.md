@@ -85,3 +85,21 @@ verify-order-create-forms: 9/9 ✓
 QA autenticado producción 8/8 ✓ (login, 404, OC PDF, OS PDF, Excel, dashboard)
 lint: 0 errors | build: clean | regresión: verify-order-pdfs 7/7, verify-order-cashflow 28/28, verify-report-export 31/31
 ```
+
+## Rotación de contraseña admin (2026-06-28)
+
+La contraseña temporal `admin123` usada durante QA fue rotada por una contraseña segura generada
+criptográficamente (`crypto.randomBytes(32).toString("base64url")`).
+
+**Método:** hash bcrypt cost 12 (`$2b$12$`), aplicado directamente a la BD de producción
+via `scripts/create-admin-user.ts`.
+
+**Verificación:**
+- `admin123` → 401 ✓ (rechazada)
+- Nueva contraseña → login 200 + cookie ✓
+- `/purchase-orders`, `/service-orders`, `/reports`, `/dashboard` → 200 ✓
+- PDF OC/OS → 200+PDF ✓
+- Excel export → 200 XLSX ✓
+- Logout → 200 ✓, post-logout `/dashboard` → 307 ✓
+
+**La contraseña NO aparece en git, docs, ni logs.** Guardada en `.env.claude.local` (gitignored).
