@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 5 producción  
-**Estado:** ✅ Producción OK — Phase 5 activa | export Excel 7/7
+**Última verificación:** 2026-06-28 — Phase 6 producción  
+**Estado:** ✅ Producción OK — Phase 6 activa | export Excel 7/7 | export PDF 7/7
 
 ---
 
@@ -9,7 +9,9 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `9c8bc2b` (latest) | ✅ READY + aliased — Phase 5 | 2026-06-28 |
+| `dpp-pink.vercel.app` (producción) | `1445845` (latest) | ✅ READY + aliased — Phase 6 | 2026-06-28 |
+| `dpl_AoS7NJawfnNxU99ZDT1gYinjUFkt` (Phase 6 prod) | `1445845` | ✅ READY — 7/7 rutas + 7/7 PDF 200 + Excel sin regresión | 2026-06-28 |
+| `dpp-pink.vercel.app` anterior | `9c8bc2b` | ✅ Phase 5 | 2026-06-28 |
 | `dpl_CMToo46i2cXrREkps9ydGoWNLrWv` (Phase 5 prod) | `9c8bc2b` | ✅ READY — 7/7 rutas + 7/7 endpoints Excel 200 | 2026-06-28 |
 | Preview Phase 5 (`dpp-775ci3qh2-...vercel.app`) | dirty (local) | ✅ READY — /reports 200, export QA 32/32 | 2026-06-27 |
 | Preview Phase 4C (`dpp-hp44g3375-...vercel.app`) | `62cf964` | ✅ READY — 7/7 rutas 200 | 2026-06-28 |
@@ -144,6 +146,8 @@
 | `5cb0752` | feat: partial payments Phase 4A |
 | `ee0555c` | feat: add management reports (Phase 4B) |
 | `62cf964` | feat: add report filters (Phase 4C) |
+| `877f9a5` | feat: add PDF export for reports (Phase 6A) |
+| `1445845` | Merge branch 'phase-6a-pdf-export' (Phase 6A merge) |
 | `9c8bc2b` | feat: export filtered reports to excel (Phase 5) |
 
 ---
@@ -161,3 +165,4 @@
 9. ✅ ~~Deploy producción Phase 4C — 7/7 rutas 200 + 7/7 filtros 200, sin secretos~~
 10. ✅ ~~Fase 5: Exportación Excel — QA 32/32, preview READY~~
 11. ✅ ~~Deploy producción Phase 5 — commit 9c8bc2b, deploy dpl_CMToo46i2cXrREkps9ydGoWNLrWv, 7/7 rutas 200 + 7/7 endpoints Excel 200, secretos: ninguno~~
+12. ✅ ~~Deploy producción Phase 6A — commit 877f9a5, merge 1445845, deploy dpl_AoS7NJawfnNxU99ZDT1gYinjUFkt, 7/7 rutas 200 + 7/7 endpoints PDF 200 + Excel sin regresión, secretos: ninguno~~
