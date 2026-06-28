@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Phase 4B producción  
-**Estado:** ✅ Producción OK — Phase 4B activa | 7/7 rutas 200 | Reportes gerenciales online
+**Última verificación:** 2026-06-28 — Phase 4C producción  
+**Estado:** ✅ Producción OK — Phase 4C activa | 7/7 rutas 200 | Filtros avanzados en /reports online
 
 ---
 
@@ -9,7 +9,9 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `ee0555c` (latest) | ✅ READY + aliased — Phase 4B | 2026-06-28 |
+| `dpp-pink.vercel.app` (producción) | `62cf964` (latest) | ✅ READY + aliased — Phase 4C | 2026-06-28 |
+| Preview Phase 4C (`dpp-hp44g3375-...vercel.app`) | `62cf964` | ✅ READY — 7/7 rutas 200 | 2026-06-28 |
+| `dpp-pink.vercel.app` anterior | `ee0555c` | ✅ Phase 4B | 2026-06-28 |
 | Preview Phase 4B (`dpp-py92iu6i1-...vercel.app`) | `ee0555c` | ✅ READY — 5/5 rutas 200 | 2026-06-28 |
 | `dpp-pink.vercel.app` anterior | `5cb0752` | ✅ Phase 4A | 2026-06-28 |
 | Preview Phase 4A (`dpp-5wsddxoif-...vercel.app`) | `5cb0752` | ✅ READY — 5/5 rutas 200 | 2026-06-27 |
@@ -139,6 +141,7 @@
 | `8e194e6` | feat: connect orders with cash flow (Phase 3) |
 | `5cb0752` | feat: partial payments Phase 4A |
 | `ee0555c` | feat: add management reports (Phase 4B) |
+| `62cf964` | feat: add report filters (Phase 4C) |
 
 ---
 
@@ -151,3 +154,5 @@
 5. ✅ ~~Deploy producción Phase 4A — 7/7 rutas 200, pagos parciales QA OK~~
 6. ✅ ~~Fase 4B: Reportes gerenciales — QA 10/10, preview 5/5 rutas 200~~
 7. ✅ ~~Deploy producción Phase 4B — 7/7 rutas 200, reportes gerenciales QA OK~~
+8. ✅ ~~Fase 4C: Filtros avanzados en /reports — QA 49/49, preview 7/7 rutas 200~~
+9. ✅ ~~Deploy producción Phase 4C — 7/7 rutas 200 + 7/7 filtros 200, sin secretos~~
