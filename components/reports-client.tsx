@@ -9,7 +9,20 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend, Cell,
 } from "recharts"
-import type { ReportsData } from "@/lib/data/reports"
+import type { ReportsData, ReportFilters } from "@/lib/data/reports"
+
+function buildExportUrl(filters: ReportFilters): string {
+  const p = new URLSearchParams()
+  if (filters.range !== "this_month") p.set("range", filters.range)
+  if (filters.range === "custom" && filters.rawStartDate) p.set("startDate", filters.rawStartDate)
+  if (filters.range === "custom" && filters.rawEndDate) p.set("endDate", filters.rawEndDate)
+  if (filters.supplierId) p.set("supplierId", filters.supplierId)
+  if (filters.origin) p.set("origin", filters.origin)
+  if (filters.operationStatus) p.set("status", filters.operationStatus)
+  if (filters.category) p.set("category", filters.category)
+  const qs = p.toString()
+  return "/api/reports/export" + (qs ? "?" + qs : "")
+}
 
 // ──── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -711,21 +724,30 @@ export function ReportsClient({ data }: { data: ReportsData }) {
         </Card>
       </section>
 
-      {/* ── Exportar (placeholder Fase 5) ────────────────────────────────── */}
+      {/* ── Exportar ─────────────────────────────────────────────────────── */}
       <section>
         <Card className="border-dashed">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-3">
-              La exportación de reportes estará disponible en Fase 5.
+              Exportar datos del periodo <strong>{filters.rangeLabel}</strong>
+              {filters.activeCount > 0 && (
+                <> con <strong>{filters.activeCount}</strong> filtro{filters.activeCount !== 1 ? "s" : ""} activo{filters.activeCount !== 1 ? "s" : ""}</>
+              )}.
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled className="gap-2 opacity-50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => { window.location.href = buildExportUrl(filters) }}
+              >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 Exportar Excel
               </Button>
               <Button variant="outline" size="sm" disabled className="gap-2 opacity-50">
                 <Download className="w-3.5 h-3.5" />
                 Exportar PDF
+                <span className="text-[10px] opacity-70 ml-1">(Fase futura)</span>
               </Button>
             </div>
           </CardContent>

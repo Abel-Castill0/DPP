@@ -323,7 +323,7 @@ export async function getReportsData(filters?: ReportFilters): Promise<ReportsDa
       metodos: [...methodMap.entries()]
         .map(([method, total]) => ({ method, total }))
         .sort((a, b) => b.total - a.total),
-      pagos: payments.slice(0, 20).map((p) => ({
+      pagos: payments.map((p) => ({
         id: p.id,
         monto: Number(p.amount),
         fecha: p.date.toISOString().slice(0, 10),
