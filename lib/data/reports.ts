@@ -1,5 +1,12 @@
 import { prisma, withDb } from "@/lib/prisma"
 
+// ──── Param allowlists (validated against Prisma enums) ───────────────────────
+const VALID_RANGES = new Set(["this_month", "last_month", "last_30", "last_90", "this_year", "custom"])
+const VALID_ORIGINS = new Set(["ORDEN_COMPRA", "ORDEN_SERVICIO", "MANUAL", "IMPORTADO"])
+const VALID_STATUSES = new Set(["CANCELADO", "ADELANTO", "COBRADO", "POR_PAGAR", "POR_COBRAR", "DEVOLUCIONES", "OTROS"])
+const VALID_CATEGORIES = new Set(["CONFECCION", "CORTE", "ESTAMPADO", "ACABADO_EMPAQUE", "MATERIA_PRIMA", "PLANILLA", "IMPUESTO", "MOVILIDAD", "COMISION", "CAJA_CHICA", "PRESTAMO", "INVERSION", "COMPRA", "VENTA", "OTROS"])
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 // ──── Filter types ─────────────────────────────────────────────────────────────
 
 export type ReportFilters = {
@@ -26,7 +33,8 @@ export function buildFilters(
   const str = (v: string | string[] | undefined): string =>
     Array.isArray(v) ? (v[0] ?? "") : (v ?? "")
 
-  const range = str(sp.range) || "this_month"
+  const rangeRaw = str(sp.range)
+  const range = VALID_RANGES.has(rangeRaw) ? rangeRaw : "this_month"
   const now = new Date()
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
 
@@ -67,10 +75,14 @@ export function buildFilters(
   if (!rawStartDate) rawStartDate = toDateStr(startDate)
   if (!rawEndDate) rawEndDate = toDateStr(endDate)
 
-  const supplierId = str(sp.supplierId) || undefined
-  const origin = str(sp.origin) || undefined
-  const operationStatus = str(sp.status) || undefined
-  const category = str(sp.category) || undefined
+  const supplierIdRaw = str(sp.supplierId)
+  const supplierId = supplierIdRaw && UUID_RE.test(supplierIdRaw) ? supplierIdRaw : undefined
+  const originRaw = str(sp.origin)
+  const origin = originRaw && VALID_ORIGINS.has(originRaw) ? originRaw : undefined
+  const statusRaw = str(sp.status)
+  const operationStatus = statusRaw && VALID_STATUSES.has(statusRaw) ? statusRaw : undefined
+  const categoryRaw = str(sp.category)
+  const category = categoryRaw && VALID_CATEGORIES.has(categoryRaw) ? categoryRaw : undefined
 
   let activeCount = 0
   if (range !== "this_month") activeCount++
