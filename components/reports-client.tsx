@@ -11,7 +11,7 @@ import {
 } from "recharts"
 import type { ReportsData, ReportFilters } from "@/lib/data/reports"
 
-function buildExportUrl(filters: ReportFilters): string {
+function buildExportUrl(filters: ReportFilters, endpoint = "/api/reports/export"): string {
   const p = new URLSearchParams()
   if (filters.range !== "this_month") p.set("range", filters.range)
   if (filters.range === "custom" && filters.rawStartDate) p.set("startDate", filters.rawStartDate)
@@ -21,7 +21,7 @@ function buildExportUrl(filters: ReportFilters): string {
   if (filters.operationStatus) p.set("status", filters.operationStatus)
   if (filters.category) p.set("category", filters.category)
   const qs = p.toString()
-  return "/api/reports/export" + (qs ? "?" + qs : "")
+  return endpoint + (qs ? "?" + qs : "")
 }
 
 // ──── Helpers ──────────────────────────────────────────────────────────────────
@@ -744,10 +744,14 @@ export function ReportsClient({ data }: { data: ReportsData }) {
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 Exportar Excel
               </Button>
-              <Button variant="outline" size="sm" disabled className="gap-2 opacity-50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => { window.location.href = buildExportUrl(filters, "/api/reports/export-pdf") }}
+              >
                 <Download className="w-3.5 h-3.5" />
                 Exportar PDF
-                <span className="text-[10px] opacity-70 ml-1">(Fase futura)</span>
               </Button>
             </div>
           </CardContent>
