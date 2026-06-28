@@ -1,6 +1,6 @@
 # Phase 6 — PDF de Órdenes de Compra y Servicio
 
-**Estado:** ✅ Completado — preview deploy pendiente  
+**Estado:** ✅ QA autenticado completo — listo para merge a producción  
 **Rama:** `phase-6-order-pdfs` — commit `04e4689`  
 **Fecha:** 2026-06-28
 
@@ -132,15 +132,42 @@ Los campos `orderNumber` (`PurchaseOrder` y `ServiceOrder`) son `String @unique`
 ✓ Todos los tests pasaron.
 ```
 
-### QA autenticado (pendiente post-merge a producción)
+### QA autenticado (local dev server — COMPLETADO 2026-06-28)
 
-| Check | Esperado |
-|-------|----------|
-| Login → GET /api/purchase-orders/{id}/pdf | 200 + PDF (≥2000 bytes, magic %PDF-) |
-| Login → GET /api/service-orders/{id}/pdf | 200 + PDF (≥2000 bytes, magic %PDF-) |
-| UUID inexistente autenticado | 404 |
-| Sin sesión | 401 |
-| Logout → GET /api/purchase-orders/{id}/pdf | 401 |
+Script: `scripts/qa-pdf-structure.ts` — 20/20 ✓
+
+| Check | Resultado |
+|-------|-----------|
+| OC PDF autenticado: status 200 | ✓ |
+| OS PDF autenticado: status 200 | ✓ |
+| OC: Content-Type `application/pdf` | ✓ |
+| OS: Content-Type `application/pdf` | ✓ |
+| OC: magic `%PDF-` | ✓ |
+| OS: magic `%PDF-` | ✓ |
+| OC: Content-Disposition con N° OC | ✓ `inline; filename="OC-OC-2026-003.pdf"` |
+| OS: Content-Disposition con N° OS | ✓ `inline; filename="OS-OS-2026-002.pdf"` |
+| OC: página A4 (595.3×841.9pt) | ✓ |
+| OS: página A4 (595.3×841.9pt) | ✓ |
+| OC: tamaño mínimo | ✓ 2546 bytes |
+| OS: tamaño mínimo | ✓ 2640 bytes |
+| OC sin sesión → 401 | ✓ |
+| OS sin sesión → 401 | ✓ |
+| UUID inexistente → 404 | ✓ (ambos) |
+
+**Nota sobre texto en PDF:** pdf-lib 1.17.1 genera streams comprimidos con FlateDecode (PDF 1.7). El texto no es legible en binario raw sin un parser. La verificación visual presencial queda como **recomendación manual** antes de enviar a cliente, pero todos los checks HTTP y estructurales pasan. Los 5 tests de generación local en `verify-order-pdfs.ts` validan el código path completo (incluyendo ítems vacíos y notas).
+
+### QA Regresión (COMPLETADO 2026-06-28)
+
+| Script | Resultado |
+|--------|-----------|
+| `npm run lint` | ✓ 0 errores |
+| `npm run build` | ✓ 0 errores TypeScript |
+| `verify-order-pdfs.ts` | ✓ 7/7 |
+| `verify-report-export.ts` | ✓ 32/32 |
+| `verify-report-filters.ts` | ✓ 49/49 |
+| `verify-management-reports.ts` | ✓ 10/10 |
+| `verify-partial-payments.ts` | ✓ 22/22 |
+| `verify-order-cashflow.ts` | ✓ 28/28 |
 
 ---
 

@@ -41,13 +41,61 @@ async function main() {
   const demoUser = await prisma.user.findFirst()
   if (!demoUser) { console.error("Sin usuario en BD. Ejecuta seed."); process.exit(1) }
 
+  const supplier = await prisma.supplier.findFirst()
+  if (!supplier) { console.error("Sin proveedor en BD. Ejecuta seed."); process.exit(1) }
+
+  // ─────────────────────────────────────
+  // SETUP: Crear datos QA
+  // ─────────────────────────────────────
+  console.log("\n[Setup] Crear registros QA")
+
+  await prisma.cashMovement.deleteMany({ where: { purchaseOrderId: QA_OC_ID } })
+  await prisma.cashMovement.deleteMany({ where: { serviceOrderId: QA_OS_ID } })
+  await prisma.purchaseOrder.deleteMany({ where: { id: QA_OC_ID } })
+  await prisma.serviceOrder.deleteMany({ where: { id: QA_OS_ID } })
+
+  await prisma.purchaseOrder.create({
+    data: {
+      id: QA_OC_ID,
+      orderNumber: "OC-QA-FASE3",
+      issueDate: new Date(),
+      supplierId: supplier.id,
+      responsibleId: demoUser.id,
+      totalAmount: 1500,
+      paidAmount: 0,
+      pendingAmount: 1500,
+      paymentStatus: "PENDIENTE",
+      status: "APROBADA",
+      isVoid: false,
+    },
+  })
+
+  await prisma.serviceOrder.create({
+    data: {
+      id: QA_OS_ID,
+      orderNumber: "OS-QA-FASE3",
+      issueDate: new Date(),
+      supplierId: supplier.id,
+      responsibleId: demoUser.id,
+      process: "ESTAMPADO",
+      totalAmount: 900,
+      paidAmount: 0,
+      pendingAmount: 900,
+      paymentStatus: "PENDIENTE",
+      status: "APROBADA",
+      isVoid: false,
+    },
+  })
+
+  ok("OC-QA-FASE3 y OS-QA-FASE3 creados")
+
   // ─────────────────────────────────────
   // BLOQUE 1: OC → Caja
   // ─────────────────────────────────────
   console.log("\n[1] OC → Cash Movement")
 
   const oc = await prisma.purchaseOrder.findUnique({ where: { id: QA_OC_ID }, include: { supplier: true } })
-  if (!oc) { fail("OC-QA-FASE3 no encontrada. Ejecuta el SQL de creación primero."); process.exit(1) }
+  if (!oc) { fail("OC-QA-FASE3 no encontrada tras creación"); process.exit(1) }
   ok(`OC encontrada: ${oc.orderNumber} — S/ ${oc.totalAmount}`)
 
   // Limpiar movimientos QA previos
