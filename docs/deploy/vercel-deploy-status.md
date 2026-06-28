@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-27 (vía Supabase MCP + Vercel MCP + verificación HTTP)  
-**Estado:** ✅ Producción OK — todas las rutas responden 200
+**Última verificación:** 2026-06-27 — Phase 3 deploy (vía Supabase MCP + QA script 27/27)  
+**Estado:** ✅ Producción OK — Phase 3 activa, 7/7 rutas 200, OC/OS→Caja operativo
 
 ---
 
@@ -9,7 +9,8 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `c828c76` (latest) | ✅ READY + aliased | 2026-06-27 |
+| `dpp-pink.vercel.app` (producción) | `8e194e6` (latest) | ✅ READY + aliased — Phase 3 | 2026-06-27 |
+| `dpl_6P74V7v94Nx4cyQtNV1VviDGeNd6` | `8e194e6` | ✅ READY → 200 en 7/7 rutas | 2026-06-27 |
 | `dpl_9QkepajrzxRL3sE3xh6NB9Mhi9di` | `c828c76` | ✅ READY → 200 en 8/8 rutas | 2026-06-27 |
 
 **Proyecto Vercel:** `prj_GMwUTB3OWKGAXoac1jiFAPwa1NeS`  
@@ -131,6 +132,7 @@
 | `790cfb6` | Debug: /api/db-check (temporal) |
 | `e07d4b0` | Chore: eliminar debug endpoint |
 | `75a3f45` | Docs: update production deployment status |
+| `8e194e6` | feat: connect orders with cash flow (Phase 3) |
 
 ---
 
@@ -138,5 +140,5 @@
 
 1. ✅ ~~Activar Connection Pooling en Supabase Dashboard~~
 2. ✅ ~~Verificar 8/8 rutas → 200~~
-3. **QA:** Crear "Proveedor QA Producción" e "Item QA Producción" via formularios en producción
-4. **Fase 3:** Flujo de caja real conectado a OC/OS
+3. ✅ ~~Fase 3: Flujo de caja real conectado a OC/OS — QA 27/27, deploy prod OK~~
+4. **Fase 4:** Pagos parciales, formulario de pagos en OC/OS, reportes gerenciales reales
