@@ -3,11 +3,10 @@
  * Run: npx tsx --env-file=.env.claude.local scripts/verify-report-filters.ts
  */
 import * as dotenv from "dotenv"
-dotenv.config({ path: ".env.claude.local", override: true })
 dotenv.config({ path: ".env.local", override: true })
+dotenv.config({ path: ".env.claude.local", override: true })
 import { PrismaClient } from "../lib/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { buildFilters, getReportsData } from "../lib/data/reports"
 
 function createClient() {
   const url = process.env.DATABASE_URL!
@@ -23,6 +22,7 @@ function fail(msg: string, d?: unknown) { console.error(`  ✗ ${msg}`); if (d !
 
 async function main() {
   if (!process.env.DATABASE_URL) { console.error("DATABASE_URL no configurado."); process.exit(1) }
+  const { buildFilters, getReportsData } = await import("../lib/data/reports")
   const prisma = createClient()
 
   // ─── 1. buildFilters — defaults ──────────────────────────────────────────────

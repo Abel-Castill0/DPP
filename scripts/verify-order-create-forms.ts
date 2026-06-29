@@ -5,7 +5,7 @@
  */
 import * as dotenv from "dotenv"
 dotenv.config({ path: ".env.local", override: true })
-dotenv.config({ path: ".env" })
+dotenv.config({ path: ".env.claude.local", override: true })
 
 let passed = 0, failed = 0
 function ok(label: string, detail = "") { console.log(`  ✓  ${label}${detail ? " — " + detail : ""}`); passed++ }

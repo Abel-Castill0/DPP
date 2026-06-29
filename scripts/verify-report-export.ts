@@ -4,11 +4,9 @@
  * Run: npx tsx --env-file=.env.claude.local scripts/verify-report-export.ts
  */
 import * as dotenv from "dotenv"
-dotenv.config({ path: ".env.claude.local", override: true })
 dotenv.config({ path: ".env.local", override: true })
+dotenv.config({ path: ".env.claude.local", override: true })
 import ExcelJS from "exceljs"
-import { buildFilters, getReportsData } from "../lib/data/reports"
-import { generateReportsWorkbook, EXPECTED_SHEET_NAMES } from "../lib/excel/reports-workbook"
 
 let passed = 0
 let failed = 0
@@ -26,6 +24,8 @@ async function readWorkbook(buffer: Uint8Array): Promise<ExcelJS.Workbook> {
 
 async function main() {
   if (!process.env.DATABASE_URL) { console.error("DATABASE_URL no configurado."); process.exit(1) }
+  const { buildFilters, getReportsData } = await import("../lib/data/reports")
+  const { generateReportsWorkbook, EXPECTED_SHEET_NAMES } = await import("../lib/excel/reports-workbook")
 
   // ─── 1. this_year — workbook básico ──────────────────────────────────────────
   console.log("\n[1] generateReportsWorkbook — this_year")

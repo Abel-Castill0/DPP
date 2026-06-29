@@ -266,7 +266,7 @@ export async function getReportsData(filters?: ReportFilters): Promise<ReportsDa
         select: {
           id: true, amount: true, date: true,
           paymentMethod: true, operationNumber: true,
-          cashMovement: { select: { supplier: { select: { name: true } } } },
+          cashMovementId: true,
         },
         orderBy: { date: "desc" },
       }),
@@ -292,6 +292,17 @@ export async function getReportsData(filters?: ReportFilters): Promise<ReportsDa
         orderBy: { name: "asc" },
       }),
     ])
+
+    // Resolve supplier names for payments via a separate query to avoid nested-select
+    // failures on orphaned FKs (cashMovementId pointing to a deleted cashMovement).
+    const pmCmIds = [...new Set(payments.map(p => p.cashMovementId))]
+    const pmCashMovements = pmCmIds.length > 0
+      ? await prisma.cashMovement.findMany({
+          where: { id: { in: pmCmIds } },
+          select: { id: true, supplier: { select: { name: true } } },
+        })
+      : []
+    const pmSupplierMap = new Map(pmCashMovements.map(cm => [cm.id, cm.supplier?.name ?? "—"]))
 
     // Apply origin filter to pending orders at JS level
     let filtOc = ocOrders
@@ -341,7 +352,7 @@ export async function getReportsData(filters?: ReportFilters): Promise<ReportsDa
         fecha: p.date.toISOString().slice(0, 10),
         metodo: p.paymentMethod,
         opNumber: p.operationNumber,
-        proveedor: p.cashMovement.supplier?.name ?? "—",
+        proveedor: pmSupplierMap.get(p.cashMovementId) ?? "—",
       })),
     }
 
