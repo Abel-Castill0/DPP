@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-28 — Hotfix FK constraint OC/OS — deploy producción OK, QA completo  
-**Estado:** ✅ Producción OK — Hotfix FK suppliers deployed | QA autenticado 8/8 ✓ | OC/OS PDFs OK | Excel regresión OK
+**Última verificación:** 2026-06-29 — Hotfix report filters — verify-report-filters 49/49 ✓ | deploy producción OK  
+**Estado:** ✅ Producción OK — Hotfix nullable cashMovement deployed | verify-report-filters 49/49 ✓ | Excel export 32/32 ✓ | OC/OS PDFs OK
 
 ---
 
@@ -9,7 +9,8 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `84e7c85` (hotfix FK suppliers) | ✅ READY `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` — QA auth 8/8 ✓ | 2026-06-28 |
+| `dpp-pink.vercel.app` (producción) | `4a677c5` (hotfix report filters) | ✅ READY `dpl_5TZSkXzJT2TP7j5rwJ3RnwHQFgU1` — verify-report-filters 49/49 ✓ | 2026-06-29 |
+| `dpp-pink.vercel.app` anterior | `84e7c85` (hotfix FK suppliers) | ✅ READY `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` — QA auth 8/8 ✓ | 2026-06-28 |
 | `dpp-pink.vercel.app` anterior | `6b67899` (merge Phase 6 PDFs) | ✅ READY + aliased — Phase 6 OC/OS PDFs | 2026-06-28 |
 | `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx` (Phase 6 PDFs prod) | `6b67899` | ✅ READY — sin sesión 8/8, build 22 rutas, QA auth manual ⏳ | 2026-06-28 |
 | `dpp-n7svet62w-...vercel.app` (preview Phase 6 PDFs) | `04e4689` | ✅ READY — rama `phase-6-order-pdfs` | 2026-06-28 |
