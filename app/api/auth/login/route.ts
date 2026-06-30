@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       sub: user.id,
       email: user.email,
       role: user.role,
+      name: user.name,
     })
 
     // Log LOGIN action (non-blocking — failure must not block login)

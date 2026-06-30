@@ -49,7 +49,16 @@ const navGroups = [
   },
 ]
 
-export function Sidebar() {
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Admin",
+  GERENCIA: "Gerencia",
+  FINANZAS: "Finanzas",
+  PRODUCCION: "Producción",
+  COMPRAS: "Compras",
+  SOLO_LECTURA: "Solo Lectura",
+}
+
+export function Sidebar({ user }: { user?: { name: string; role: string } | null }) {
   const pathname = usePathname()
 
   const isActive = (href: string) =>
@@ -109,14 +118,14 @@ export function Sidebar() {
       <div className="px-3 py-4 border-t border-sidebar-border shrink-0">
         <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-sidebar-accent/40">
           <div className="w-7 h-7 rounded-full bg-primary/30 flex items-center justify-center text-[11px] font-bold text-sidebar-foreground shrink-0">
-            U
+            {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
           </div>
           <div className="overflow-hidden">
             <p className="text-xs font-medium text-sidebar-foreground truncate">
-              Usuario Demo
+              {user?.name ?? "—"}
             </p>
             <p className="text-[10px] text-sidebar-foreground/50 truncate">
-              Finanzas
+              {user?.role ? (ROLE_LABELS[user.role] ?? user.role) : "—"}
             </p>
           </div>
         </div>
