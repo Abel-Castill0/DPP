@@ -9,7 +9,8 @@ import type { ServiceOrderRow } from "@/lib/data/service-orders"
 import { generateFromServiceOrder } from "@/app/actions/orders-to-cash"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Wrench, Plus, Search, AlertTriangle, SendHorizontal, CheckCircle2, Clock, FileDown } from "lucide-react"
+import { Wrench, Plus, Search, AlertTriangle, SendHorizontal, CheckCircle2, Clock, FileDown, Pencil, Ban, X } from "lucide-react"
+import { cancelServiceOrder } from "@/app/actions/service-orders"
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN", minimumFractionDigits: 2 }).format(n)
@@ -82,6 +83,10 @@ export function ServiceOrdersClientPage({
   const [isPending, startTransition] = useTransition()
   const [actionError, setActionError] = useState<string | null>(null)
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<{ id: string; orderNumber: string } | null>(null)
+  const [cancelReason, setCancelReason] = useState("")
+  const [cancelError, setCancelError] = useState<string | null>(null)
+  const [isCancelling, startCancelTransition] = useTransition()
 
   const filtered = orders.filter((os) => {
     if (!search) return true
@@ -98,6 +103,21 @@ export function ServiceOrdersClientPage({
   const totalPendiente = filtered
     .filter((os) => os.paymentStatus !== "PAGADO")
     .reduce((acc, os) => acc + os.pendingAmount, 0)
+
+  const handleCancelConfirm = () => {
+    if (!cancelTarget) return
+    setCancelError(null)
+    startCancelTransition(async () => {
+      const result = await cancelServiceOrder(cancelTarget.id, cancelReason)
+      if ("error" in result) {
+        setCancelError(result.error)
+      } else {
+        setCancelTarget(null)
+        setCancelReason("")
+        router.refresh()
+      }
+    })
+  }
 
   const handleSendToCash = (orderId: string) => {
     setActionError(null)
@@ -193,6 +213,7 @@ export function ServiceOrdersClientPage({
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Caja</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Responsable</th>
                       <th className="px-4 py-3 text-left font-semibold text-muted-foreground">PDF</th>
+                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -238,6 +259,28 @@ export function ServiceOrdersClientPage({
                               </a>
                             )}
                           </td>
+                          <td className="px-4 py-3">
+                            {!isDemo && os.status !== "ANULADA" && (
+                              <div className="flex items-center gap-1.5">
+                                <Link
+                                  href={`/service-orders/${os.id}/edit`}
+                                  className="inline-flex items-center gap-1 h-6 px-2 text-[10px] font-medium rounded border border-muted-foreground/30 text-muted-foreground hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                  Editar
+                                </Link>
+                                {os.paidAmount === 0 && (
+                                  <button
+                                    onClick={() => { setCancelTarget({ id: os.id, orderNumber: os.orderNumber }); setCancelReason(""); setCancelError(null) }}
+                                    className="inline-flex items-center gap-1 h-6 px-2 text-[10px] font-medium rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                                  >
+                                    <Ban className="w-3 h-3" />
+                                    Anular
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </td>
                         </tr>
                       )
                     })}
@@ -248,6 +291,61 @@ export function ServiceOrdersClientPage({
           </CardContent>
         </Card>
       </main>
+
+      {/* Cancel dialog */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-background border border-border rounded-xl shadow-xl w-full max-w-md mx-4 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold">Anular Orden de Servicio</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{cancelTarget.orderNumber}</p>
+              </div>
+              <button onClick={() => setCancelTarget(null)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Esta acción anulará la orden y sus movimientos de caja asociados.
+              No se puede revertir. Solo es posible si no tiene pagos registrados.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Motivo de anulación *</label>
+              <textarea
+                className="w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                placeholder="Describe el motivo de la anulación..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+            </div>
+
+            {cancelError && (
+              <div className="flex items-start gap-2 p-2 rounded-md bg-red-50 border border-red-200">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-600 mt-0.5 shrink-0" />
+                <p className="text-[11px] text-red-800">{cancelError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setCancelTarget(null)}
+                className="h-8 px-3 text-xs rounded-md border border-input hover:bg-muted transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={!cancelReason.trim() || isCancelling}
+                onClick={handleCancelConfirm}
+                className="h-8 px-3 text-xs rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {isCancelling ? "Anulando..." : "Confirmar anulación"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
