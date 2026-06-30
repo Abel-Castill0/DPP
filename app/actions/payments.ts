@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
+import { requireUserId } from "@/lib/session"
 
 type Result<T = true> = { error: string } | { success: T }
 
@@ -66,7 +67,8 @@ export async function registerPayment(data: {
     return { error: `El pago (S/ ${data.amount.toFixed(2)}) supera el saldo pendiente (S/ ${saldoPendiente.toFixed(2)}).` }
   }
 
-  const demoUser = await prisma.user.findFirst()
+  const session = await requireUserId()
+  const createdById = "error" in session ? null : session.userId
 
   await prisma.$transaction(async (tx) => {
     await tx.payment.create({
@@ -77,7 +79,7 @@ export async function registerPayment(data: {
         paymentMethod: data.paymentMethod as never,
         operationNumber: data.operationNumber?.trim() || null,
         notes: data.notes?.trim() || null,
-        createdById: demoUser?.id ?? null,
+        createdById,
       },
     })
     const { operationStatus, totalAbonado } = await recalc(tx, data.cashMovementId)

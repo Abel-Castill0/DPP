@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
+import { requireUserId } from "@/lib/session"
 
 type Result = { error: string } | { success: true }
 
@@ -34,8 +35,8 @@ export async function generateFromPurchaseOrder(orderId: string): Promise<Result
   const totalAmount = Number(order.totalAmount)
   if (totalAmount <= 0) return { error: "La OC tiene monto cero. Agrega ítems con precio antes de enviar a caja." }
 
-  const demoUser = await prisma.user.findFirst()
-  if (!demoUser) return { error: "Sin usuario en BD. Ejecuta el seed." }
+  const session = await requireUserId()
+  if ("error" in session) return session
 
   await prisma.cashMovement.create({
     data: {
@@ -53,7 +54,7 @@ export async function generateFromPurchaseOrder(orderId: string): Promise<Result
       retencion: 0,
       detraccion: 0,
       description: `OC ${order.orderNumber} — ${order.supplier.name}`,
-      createdById: demoUser.id,
+      createdById: session.userId,
     },
   })
 
@@ -81,8 +82,8 @@ export async function generateFromServiceOrder(orderId: string): Promise<Result>
   const totalAmount = Number(order.totalAmount)
   if (totalAmount <= 0) return { error: "La OS tiene monto cero. Agrega ítems con precio antes de enviar a caja." }
 
-  const demoUser = await prisma.user.findFirst()
-  if (!demoUser) return { error: "Sin usuario en BD. Ejecuta el seed." }
+  const session = await requireUserId()
+  if ("error" in session) return session
 
   const category = processToCategory[order.process] ?? "OTROS"
 
@@ -102,7 +103,7 @@ export async function generateFromServiceOrder(orderId: string): Promise<Result>
       retencion: 0,
       detraccion: 0,
       description: `OS ${order.orderNumber} — ${order.process} · ${order.supplier.name}`,
-      createdById: demoUser.id,
+      createdById: session.userId,
     },
   })
 
@@ -124,7 +125,8 @@ export async function markMovementPaid(movementId: string): Promise<Result> {
   const totalAmount = Number(movement.invoiceAmount ?? 0)
   if (totalAmount <= 0) return { error: "El monto es cero. No se puede marcar como pagado." }
 
-  const demoUser = await prisma.user.findFirst()
+  const session = await requireUserId()
+  const updatedById = "error" in session ? null : session.userId
 
   await prisma.$transaction(async (tx) => {
     await tx.cashMovement.update({
@@ -134,7 +136,7 @@ export async function markMovementPaid(movementId: string): Promise<Result> {
         abono: totalAmount,
         expenseAmount: movement.type === "EGRESO" ? totalAmount : 0,
         incomeAmount: movement.type === "INGRESO" ? totalAmount : 0,
-        updatedById: demoUser?.id ?? null,
+        updatedById,
       },
     })
 
@@ -171,7 +173,8 @@ export async function markMovementPaid(movementId: string): Promise<Result> {
 export async function markMovementPending(movementId: string): Promise<Result> {
   if (!process.env.DATABASE_URL) return { error: "Sin conexión a BD." }
 
-  const demoUser = await prisma.user.findFirst()
+  const session = await requireUserId()
+  const updatedById = "error" in session ? null : session.userId
 
   await prisma.cashMovement.update({
     where: { id: movementId },
@@ -180,7 +183,7 @@ export async function markMovementPending(movementId: string): Promise<Result> {
       abono: 0,
       expenseAmount: 0,
       incomeAmount: 0,
-      updatedById: demoUser?.id ?? null,
+      updatedById,
     },
   })
 

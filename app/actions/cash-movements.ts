@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { requireUserId } from "@/lib/session"
 
 export type CreateMovementResult = { error: string } | { success: true }
 
@@ -28,8 +29,8 @@ export async function createCashMovement(data: {
   if (!data.category) return { error: "La categoría es obligatoria." }
 
   try {
-    const demoUser = await prisma.user.findFirst()
-    if (!demoUser) return { error: "No hay usuario demo en la BD. Ejecuta el seed primero." }
+    const session = await requireUserId()
+    if ("error" in session) return session
 
     const invoiceAmt = data.invoiceAmount ?? 0
     await prisma.cashMovement.create({
@@ -49,7 +50,7 @@ export async function createCashMovement(data: {
         expenseAmount: data.type === "EGRESO" ? data.abono : 0,
         paymentMethod: data.paymentMethod ? (data.paymentMethod as never) : null,
         operationNumber: data.operationNumber?.trim() || null,
-        createdById: demoUser.id,
+        createdById: session.userId,
       },
     })
   } catch (e) {

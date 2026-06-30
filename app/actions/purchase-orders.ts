@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { requireUserId } from "@/lib/session"
 
 export type LineItemInput = {
   description: string
@@ -34,8 +35,8 @@ export async function createPurchaseOrder(data: {
     const supplier = await prisma.supplier.findUnique({ where: { id: data.supplierId }, select: { id: true } })
     if (!supplier) return { error: "El proveedor seleccionado no existe. Recarga la página e intenta de nuevo." }
 
-    const demoUser = await prisma.user.findFirst()
-    if (!demoUser) return { error: "No hay usuario demo en la BD. Ejecuta el seed primero." }
+    const session = await requireUserId()
+    if ("error" in session) return session
 
     const count = await prisma.purchaseOrder.count()
     const year = new Date().getFullYear()
@@ -48,7 +49,7 @@ export async function createPurchaseOrder(data: {
       data: {
         orderNumber,
         supplierId: data.supplierId,
-        responsibleId: demoUser.id,
+        responsibleId: session.userId,
         issueDate: new Date(data.issueDate),
         expectedDate: data.expectedDate ? new Date(data.expectedDate) : null,
         totalAmount,

@@ -2,7 +2,7 @@
 
 # DPP Control — Estado del proyecto
 
-## Fase actual: 2 (completada)
+## Fase actual: 9 (en progreso)
 
 ## App
 
