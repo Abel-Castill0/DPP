@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-30 — Phase 8A order edit & cancel — merge a main `1972c13` | deploy prod `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` READY  
-**Estado:** ✅ Producción OK (Phase 8A) — edición y anulación OC/OS activas, 0 runtime errors (30 min)
+**Última verificación:** 2026-06-30 — Phase 8A CERRADA — QA autenticado producción completado manualmente por el usuario (13/13 ✓)  
+**Estado:** ✅ Producción OK (Phase 8A) — edición y anulación OC/OS activas, 0 runtime errors, QA autenticado manual 13/13 ✓
 
 ---
 
@@ -9,7 +9,7 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-pink.vercel.app` (producción) | `1972c13` (Phase 8A merge --no-ff) | ✅ READY `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` — QA 29/29 ✓, 0 runtime errors, rutas sin sesión → /login ✓ | 2026-06-30 |
+| `dpp-pink.vercel.app` (producción) | `1972c13` (Phase 8A merge --no-ff) | ✅ READY `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` — QA auto 29/29 ✓ + QA autenticado manual 13/13 ✓ — **Phase 8A CERRADA** | 2026-06-30 |
 | `dpp-5lmv857pr-abelcastillotrabajo-6110s-projects.vercel.app` (preview Phase 8A) | `4563d06` (Phase 8A) | 🔵 PREVIEW `dpl_Gzw8g7ANgKm27yeLaKgnW3dj3Ghj` — 29/29 ✓ | 2026-06-29 |
 | `dpp-pink.vercel.app` anterior | `4a677c5` (hotfix report filters) | ✅ READY `dpl_5TZSkXzJT2TP7j5rwJ3RnwHQFgU1` — verify-report-filters 49/49 ✓ | 2026-06-29 |
 | `dpp-pink.vercel.app` anterior | `84e7c85` (hotfix FK suppliers) | ✅ READY `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` — QA auth 8/8 ✓ | 2026-06-28 |
@@ -183,4 +183,4 @@
 15. ✅ Preview Phase 6 OC/OS PDFs — rama `phase-6-order-pdfs`, commit `04e4689`, deploy `dpl_9MwZveT8qL5UHnRgUJoKNpup2SvT` READY — QA autenticado 20/20 ✓, regresión 148/148 ✓
 16. ✅ Deploy producción Phase 6 OC/OS PDFs — commit `6b67899` (merge --no-ff), deploy `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx`, sin sesión 8/8 ✓, autenticado 8/8 ✓ (PDF OC 2546b + OS 2639b + %PDF- + 404 + Excel 200 + dashboard 200), regresión 148/148 ✓, secretos: ninguno
 17. ✅ Hotfix FK constraint OC/OS — commit `84e7c85`, deploy `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` READY — QA autenticado 8/8 ✓, verify-order-create-forms 9/9 ✓, secretos: ninguno
-18. ✅ Deploy producción Phase 8A — commit `1972c13` (merge --no-ff branch `phase-8a-order-edit-cancel`), deploy `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` READY — QA 29/29 ✓, 0 runtime errors (30 min), rutas sin sesión → /login ✓, login 200 ✓, secretos: ninguno. Nuevas rutas: `/purchase-orders/[id]/edit`, `/service-orders/[id]/edit`. Nuevas acciones: `updatePurchaseOrder`, `cancelPurchaseOrder`, `updateServiceOrder`, `cancelServiceOrder`.
+18. ✅ **Phase 8A CERRADA** — Deploy producción commit `1972c13` (merge --no-ff `phase-8a-order-edit-cancel`), deploy `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` READY. QA automatizado 29/29 ✓. QA autenticado producción completado manualmente por el usuario 13/13 ✓ (login, editar OC, PDF OC, anular OC, bloqueo OC anulada, editar OS, PDF OS, anular OS, bloqueo OS anulada, reports, Excel, dashboard, logout + rutas protegidas). 0 runtime errors. Secretos: ninguno. Rutas nuevas: `/purchase-orders/[id]/edit`, `/service-orders/[id]/edit`. Acciones nuevas: `updatePurchaseOrder`, `cancelPurchaseOrder`, `updateServiceOrder`, `cancelServiceOrder`.
