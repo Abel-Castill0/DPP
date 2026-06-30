@@ -1,7 +1,7 @@
 # Vercel Deploy Status — DPP Control
 
-**Última verificación:** 2026-06-30 — Phase 9 branch lista para preview deploy  
-**Estado:** ✅ Producción OK (Phase 8A) | 🔄 Phase 9 en rama `phase-9-session-traceability` — QA local 10/10 ✓, pendiente preview
+**Última verificación:** 2026-06-30 — Phase 9 en producción  
+**Estado:** ✅ Producción OK (Phase 9) | `dpp-pink.vercel.app` — `dpl_2RRUY7uuv8fVgkQwcASqg1LmGqAJ` READY
 
 ---
 
@@ -9,8 +9,9 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| `dpp-l9veos5sd-...vercel.app` (preview Phase 9) | `895c703` (Phase 9) | ✅ READY `dpl_5vcfFn9FYPYhtc8cWXhf77t5hY5V` — QA auto 10/10 ✓ + regresión 138/138 ✓ + 0 runtime errors — Vercel SSO activo (manual visual QA pendiente) | 2026-06-30 |
-| `dpp-pink.vercel.app` (producción) | `1972c13` (Phase 8A merge --no-ff) | ✅ READY `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` — QA auto 29/29 ✓ + QA autenticado manual 13/13 ✓ — **Phase 8A CERRADA** | 2026-06-30 |
+| `dpp-pink.vercel.app` (producción) | `8b7e6f8` (Phase 9 merge --no-ff) | ✅ READY `dpl_2RRUY7uuv8fVgkQwcASqg1LmGqAJ` — QA auto 10/10 ✓ + regresión 138/138 ✓ + 0 runtime errors + QA visual manual ✓ (sidebar Administrador/Admin) + /login 200 + 8 rutas → 307 + APIs → 401 — **Phase 9 CERRADA** | 2026-06-30 |
+| `dpp-l9veos5sd-...vercel.app` (preview Phase 9) | `895c703` (Phase 9) | ✅ READY `dpl_5vcfFn9FYPYhtc8cWXhf77t5hY5V` — QA auto 10/10 ✓ + regresión 138/138 ✓ + 0 runtime errors + QA visual manual ✓ | 2026-06-30 |
+| `dpp-pink.vercel.app` anterior | `1972c13` (Phase 8A merge --no-ff) | ✅ READY `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` — QA auto 29/29 ✓ + QA autenticado manual 13/13 ✓ — Phase 8A CERRADA | 2026-06-30 |
 | `dpp-5lmv857pr-abelcastillotrabajo-6110s-projects.vercel.app` (preview Phase 8A) | `4563d06` (Phase 8A) | 🔵 PREVIEW `dpl_Gzw8g7ANgKm27yeLaKgnW3dj3Ghj` — 29/29 ✓ | 2026-06-29 |
 | `dpp-pink.vercel.app` anterior | `4a677c5` (hotfix report filters) | ✅ READY `dpl_5TZSkXzJT2TP7j5rwJ3RnwHQFgU1` — verify-report-filters 49/49 ✓ | 2026-06-29 |
 | `dpp-pink.vercel.app` anterior | `84e7c85` (hotfix FK suppliers) | ✅ READY `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` — QA auth 8/8 ✓ | 2026-06-28 |
@@ -185,3 +186,4 @@
 16. ✅ Deploy producción Phase 6 OC/OS PDFs — commit `6b67899` (merge --no-ff), deploy `dpl_DcqVzxrtMWGVFKFEp6MD37d4ULqx`, sin sesión 8/8 ✓, autenticado 8/8 ✓ (PDF OC 2546b + OS 2639b + %PDF- + 404 + Excel 200 + dashboard 200), regresión 148/148 ✓, secretos: ninguno
 17. ✅ Hotfix FK constraint OC/OS — commit `84e7c85`, deploy `dpl_6qfc77cWhjXDzLpEs8c9iCmkZ2n4` READY — QA autenticado 8/8 ✓, verify-order-create-forms 9/9 ✓, secretos: ninguno
 18. ✅ **Phase 8A CERRADA** — Deploy producción commit `1972c13` (merge --no-ff `phase-8a-order-edit-cancel`), deploy `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` READY. QA automatizado 29/29 ✓. QA autenticado producción completado manualmente por el usuario 13/13 ✓ (login, editar OC, PDF OC, anular OC, bloqueo OC anulada, editar OS, PDF OS, anular OS, bloqueo OS anulada, reports, Excel, dashboard, logout + rutas protegidas). 0 runtime errors. Secretos: ninguno. Rutas nuevas: `/purchase-orders/[id]/edit`, `/service-orders/[id]/edit`. Acciones nuevas: `updatePurchaseOrder`, `cancelPurchaseOrder`, `updateServiceOrder`, `cancelServiceOrder`.
+19. ✅ **Phase 9 CERRADA** — Deploy producción commit `8b7e6f8` (merge --no-ff `phase-9-session-traceability`), deploy `dpl_2RRUY7uuv8fVgkQwcASqg1LmGqAJ` READY. QA automatizado 10/10 ✓ + regresión 138/138 ✓. QA visual manual confirmado por usuario: sidebar muestra "Administrador" / "Admin" (no "Usuario Demo" / "Finanzas"). /login 200 + 8 rutas protegidas → 307 + 3 APIs sin sesión → 401. 0 runtime errors. Contraseña admin actualizada en BD producción. Secretos: ninguno. Archivos nuevos: `lib/session.ts`, `scripts/verify-session-traceability.ts`. Helper `requireUserId()` reemplaza `demoUser` en 5 archivos de acciones.

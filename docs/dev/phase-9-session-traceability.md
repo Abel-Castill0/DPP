@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-30
 **Branch:** `phase-9-session-traceability`
-**Status:** QA passed, pending production deploy
+**Status:** ✅ CERRADA — en producción desde 2026-06-30
 
 ---
 
@@ -107,14 +107,19 @@ Existing logged-in sessions (tokens without `name`) will show the email as the n
 - **Protected routes (no session):** 8/8 → 307 to `/login` ✓
 - **API routes (no session):** 3/3 → 401 ✓
 
-### Note: local authenticated QA blocked
+### Production deploy (2026-06-30)
 
-`next dev` locally cannot authenticate because `.env.local` has the direct Supabase URL (port 5432) which is down — only the pgbouncer URL in `.env.claude.local` works. This is a local env config issue, not a Phase 9 issue. In Vercel, the correct pgbouncer URL is configured and the app works correctly in production.
-
-**Manual visual QA required (sidebar):** After merging to main and deploying to production, verify:
-- Sidebar shows real user name (not "Usuario Demo")
-- Sidebar shows real role (not hardcoded "Finanzas")
-- New OC/OS have correct `responsibleId` in the DB
+- **Deployment:** `dpl_2RRUY7uuv8fVgkQwcASqg1LmGqAJ` — READY ✅
+- **URL:** `https://dpp-pink.vercel.app`
+- **Commit:** `8b7e6f8` (merge --no-ff `phase-9-session-traceability → main`)
+- **Runtime errors:** 0 ✓
+- **`/login`:** 200 ✓
+- **Protected routes (no session):** 8/8 → 307 ✓
+- **API routes (no session):** 3/3 → 401 ✓
+- **QA visual manual (sidebar):** Confirmado por usuario ✓
+  - Sidebar muestra "Administrador" (no "Usuario Demo")
+  - Sidebar muestra "Admin" (no hardcoded "Finanzas")
+  - Login, dashboard, logout OK
 
 ---
 
