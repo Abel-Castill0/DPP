@@ -83,15 +83,38 @@ Existing logged-in sessions (tokens without `name`) will show the email as the n
 
 ## QA executed
 
+### Automated scripts (2026-06-30)
+
 | Script | Result |
 |--------|--------|
-| `verify-session-traceability.ts` | 10/10 ✓ |
+| `verify-session-traceability.ts` | **10/10 ✓** |
 | `verify-order-edit-cancel.ts` | 29/29 ✓ |
 | `verify-partial-payments.ts` | 22/22 ✓ |
 | `verify-management-reports.ts` | 10/10 ✓ |
 | `verify-report-filters.ts` | 49/49 ✓ |
+| `verify-order-cashflow.ts` | 28/28 ✓ |
+| `verify-order-create-forms.ts` | 9/9 ✓ |
+| `verify-report-export.ts` | 32/32 ✓ |
 | `npm run lint` | 0 errors (49 warnings, pre-existing) |
 | `npm run build` | ✓ 0 errors, 25 routes |
+
+### Preview deploy (2026-06-30)
+
+- **Deployment:** `dpl_5vcfFn9FYPYhtc8cWXhf77t5hY5V` — READY ✅
+- **URL:** `https://dpp-l9veos5sd-abelcastillotrabajo-6110s-projects.vercel.app`
+- **Branch:** `phase-9-session-traceability` @ `895c703`
+- **Runtime errors:** 0 (verified via Vercel MCP)
+- **Protected routes (no session):** 8/8 → 307 to `/login` ✓
+- **API routes (no session):** 3/3 → 401 ✓
+
+### Note: local authenticated QA blocked
+
+`next dev` locally cannot authenticate because `.env.local` has the direct Supabase URL (port 5432) which is down — only the pgbouncer URL in `.env.claude.local` works. This is a local env config issue, not a Phase 9 issue. In Vercel, the correct pgbouncer URL is configured and the app works correctly in production.
+
+**Manual visual QA required (sidebar):** After merging to main and deploying to production, verify:
+- Sidebar shows real user name (not "Usuario Demo")
+- Sidebar shows real role (not hardcoded "Finanzas")
+- New OC/OS have correct `responsibleId` in the DB
 
 ---
 

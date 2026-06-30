@@ -9,7 +9,7 @@
 
 | URL | Commit | Estado | Fecha |
 |-----|--------|--------|-------|
-| Preview Phase 9 (`phase-9-session-traceability`) | pendiente push | 🔄 EN RAMA — QA local 10/10 ✓, lint 0 errores, build 25 rutas | 2026-06-30 |
+| `dpp-l9veos5sd-...vercel.app` (preview Phase 9) | `895c703` (Phase 9) | ✅ READY `dpl_5vcfFn9FYPYhtc8cWXhf77t5hY5V` — QA auto 10/10 ✓ + regresión 138/138 ✓ + 0 runtime errors — Vercel SSO activo (manual visual QA pendiente) | 2026-06-30 |
 | `dpp-pink.vercel.app` (producción) | `1972c13` (Phase 8A merge --no-ff) | ✅ READY `dpl_95JZUPK1QfQwGNTngyteYBeUq6zc` — QA auto 29/29 ✓ + QA autenticado manual 13/13 ✓ — **Phase 8A CERRADA** | 2026-06-30 |
 | `dpp-5lmv857pr-abelcastillotrabajo-6110s-projects.vercel.app` (preview Phase 8A) | `4563d06` (Phase 8A) | 🔵 PREVIEW `dpl_Gzw8g7ANgKm27yeLaKgnW3dj3Ghj` — 29/29 ✓ | 2026-06-29 |
 | `dpp-pink.vercel.app` anterior | `4a677c5` (hotfix report filters) | ✅ READY `dpl_5TZSkXzJT2TP7j5rwJ3RnwHQFgU1` — verify-report-filters 49/49 ✓ | 2026-06-29 |
