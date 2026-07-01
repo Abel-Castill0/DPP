@@ -2,7 +2,7 @@
 
 # DPP Control — Estado del proyecto
 
-## Fase actual: 9 (completada) — siguiente: 10
+## Fase actual: 10 (en progreso — QA completo, pendiente preview) — siguiente: 11/13
 
 ## App
 
@@ -52,9 +52,20 @@
 - No implementar importador Excel real todavía
 - No hacer deploy todavía
 
-## Siguiente fase (3)
+## Reglas activas (Phase 10+)
 
-- Flujo de caja real conectado a OC/OS (generar movimiento desde orden)
-- Pagos parciales y liquidación de órdenes
-- Formulario de pagos en OC/OS
-- Dashboard 100% calculado desde BD
+- No tocar configuración Supabase/Vercel
+- No modificar variables de entorno
+- No hacer migrate reset
+- No borrar datos reales
+- No imprimir secretos
+- No implementar gestión completa de usuarios (→ Phase 13)
+- No implementar roles avanzados (→ Phase 13)
+- No implementar importador Excel real (→ Phase 14+)
+- No implementar IA
+
+## Siguiente fase recomendada
+
+- **Phase 11**: Mejoras de proveedores o módulo básico de insumos
+- **Phase 12**: Módulo básico de cuentas por cobrar (KPIs "porCobrar"/"facturaVencidas")
+- **Phase 13**: Gestión de usuarios desde UI (crear, editar rol, desactivar)

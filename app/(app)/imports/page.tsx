@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Info, Users, ShoppingCart, Wrench, ArrowLeftRight } from "lucide-react"
+import { Upload, FileSpreadsheet, Info, Users, ShoppingCart, Wrench, ArrowLeftRight, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function ImportsPage() {
@@ -35,10 +35,10 @@ export default function ImportsPage() {
         <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
           <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
           <div className="text-xs text-blue-800 space-y-1">
-            <p className="font-semibold">Cómo funciona la importación</p>
+            <p className="font-semibold">Módulo en desarrollo</p>
             <p>
-              Sube el archivo Excel correspondiente. El sistema mapea las columnas, normaliza los datos (elimina errores{" "}
-              <code>#REF!</code> y <code>#N/A</code>, recorta espacios, unifica categorías) y muestra una previsualización antes de confirmar.
+              La importación de historial desde Excel está pendiente de activación. Cuando esté disponible, el sistema
+              mapeará columnas, normalizará datos y mostrará una previsualización antes de confirmar.
             </p>
           </div>
         </div>
@@ -50,29 +50,22 @@ export default function ImportsPage() {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { icon: ArrowLeftRight, label: "Flujo de caja", desc: "Historial de movimientos", active: true },
-              { icon: Users,          label: "Proveedores",   desc: "Lista de proveedores", active: false },
-              { icon: ShoppingCart,   label: "Órdenes de Compra", desc: "Historial OC", active: false },
-              { icon: Wrench,         label: "Órdenes de Servicio", desc: "Historial OS", active: false },
+              { icon: ArrowLeftRight, label: "Flujo de caja",       desc: "Historial de movimientos" },
+              { icon: Users,          label: "Proveedores",          desc: "Lista de proveedores" },
+              { icon: ShoppingCart,   label: "Órdenes de Compra",    desc: "Historial OC" },
+              { icon: Wrench,         label: "Órdenes de Servicio",  desc: "Historial OS" },
             ].map((item) => (
-              <button
+              <div
                 key={item.label}
-                disabled={!item.active}
-                className={`flex flex-col items-center gap-2 p-4 rounded-lg border text-center transition-colors ${
-                  item.active
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border bg-muted/20 text-muted-foreground opacity-50 cursor-not-allowed"
-                }`}
+                className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border bg-muted/20 text-center opacity-60 cursor-not-allowed"
               >
-                <item.icon className="w-5 h-5" />
-                <span className="text-xs font-semibold">{item.label}</span>
+                <item.icon className="w-5 h-5 text-muted-foreground" />
+                <span className="text-xs font-semibold text-muted-foreground">{item.label}</span>
                 <span className="text-[10px] text-muted-foreground">{item.desc}</span>
-                {!item.active && (
-                  <span className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
-                    Fase 5
-                  </span>
-                )}
-              </button>
+                <span className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                  Próximamente
+                </span>
+              </div>
             ))}
           </div>
         </section>
@@ -86,10 +79,7 @@ export default function ImportsPage() {
           </CardHeader>
           <CardContent>
             <div
-              onDragOver={(e) => {
-                e.preventDefault()
-                setDragging(true)
-              }}
+              onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               className={cn(
@@ -128,8 +118,8 @@ export default function ImportsPage() {
           </CardContent>
         </Card>
 
-        {/* Column mapping — placeholder */}
-        <Card className="opacity-60">
+        {/* Column mapping — pending */}
+        <Card className="opacity-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               Paso 2 — Mapeo de columnas
@@ -148,44 +138,30 @@ export default function ImportsPage() {
                 ["Excel: PROVEEDOR/CLIENTE", "Campo: party"],
                 ["Excel: FACTURA", "Campo: invoiceNumber"],
               ].map(([from, to], i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 p-2 rounded-md bg-muted/40"
-                >
+                <div key={i} className="flex items-center gap-2 p-2 rounded-md bg-muted/40">
                   <FileSpreadsheet className="w-3 h-3 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">{from}</span>
                   <span className="text-muted-foreground">→</span>
                   <span className="text-foreground font-medium">{to}</span>
-                  <CheckCircle className="w-3 h-3 text-emerald-500 ml-auto shrink-0" />
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Preview — placeholder */}
-        <Card className="opacity-60">
+        {/* Paso 3 — pendiente */}
+        <Card className="opacity-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               Paso 3 — Previsualización y validación
               <span className="text-[10px] font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                Disponible en Fase 5
+                Pendiente de activación
               </span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-4 text-xs">
-              <div className="flex items-center gap-1.5 text-emerald-700">
-                <CheckCircle className="w-3.5 h-3.5" />
-                <span>980 filas válidas</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-red-600">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>18 filas con error (se omitirán)</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground italic">
-              Vista previa de datos — los valores mostrados son de referencia.
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              La vista previa estará disponible una vez que el parser de Excel esté activo.
             </p>
           </CardContent>
         </Card>
@@ -193,16 +169,10 @@ export default function ImportsPage() {
         {/* Action */}
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => setFile(null)}>
-            Cancelar
+            Limpiar
           </Button>
-          <Button
-            disabled={!file}
-            onClick={() => {
-              // TODO: implementar importación real en Fase 5
-              alert("Importar: implementar parser en Fase 5")
-            }}
-          >
-            Confirmar importación
+          <Button disabled title="Importación pendiente de activación">
+            Importación próximamente
           </Button>
         </div>
       </main>

@@ -17,6 +17,8 @@ export async function createCashMovement(data: {
   invoiceNumber?: string
   invoiceAmount?: number
   abono: number
+  retencion?: number
+  detraccion?: number
   paymentMethod?: string
   operationNumber?: string
 }): Promise<CreateMovementResult> {
@@ -44,8 +46,8 @@ export async function createCashMovement(data: {
         supplierId: data.supplierId || null,
         invoiceAmount: invoiceAmt > 0 ? invoiceAmt : null,
         abono: data.abono,
-        retencion: 0,
-        detraccion: 0,
+        retencion: data.retencion ?? 0,
+        detraccion: data.detraccion ?? 0,
         incomeAmount: data.type === "INGRESO" ? data.abono : 0,
         expenseAmount: data.type === "EGRESO" ? data.abono : 0,
         paymentMethod: data.paymentMethod ? (data.paymentMethod as never) : null,
